@@ -8,6 +8,7 @@ object SecondStep {
         input: File,
         audioTrack: String,
         data: LoudNormData,
+        subtitles: Collection<File>,
         output: File,
     ) {
         val audioTrackParts = audioTrack.split(':')
@@ -27,26 +28,49 @@ object SecondStep {
             "print_format=summary"
         ).joinToString(prefix = "loudnorm=", separator = ":")
 
-        val code = ProcessBuilder(
+        // ----------------- формируем аргументы -----------------
+        val args = mutableListOf(
             "ffmpeg",
             "-hide_banner", "-v", "error", "-stats",
-            "-i", input.absolutePath,
+            "-y",
+            "-i", input.absolutePath, // вход №0 — исходное видео
+        )
 
-            "-map", "0:v", "-c:v", "copy",
-            "-map", "0:s?", "-c:s", "copy",
+        // Добавляем каждый .srt как отдельный вход (№1, №2, ...)
+        subtitles.forEach {
+            args += listOf("-i", it.absolutePath)
+        }
 
+        // копируем видео и существующие сабы
+        args += listOf("-map", "0:v?", "-c:v", "copy")
+        args += listOf("-map", "0:s?", "-c:s", "copy")
+
+        // внешние сабы — добавляем после существующих
+        for (index in 1..subtitles.size) {
+            args += listOf("-map", "$index:s?")
+        }
+
+        // Аудио — только выбранный трек, с применением loudnorm и перекодированием в FLAC стерео
+        args += listOf(
             "-map", audioTrack,
-
             "-af", loudnormFilter,
             "-c:a", "flac",
             "-ac", "2",
-
             "-map_metadata:s:a:0", metadataSource,
+        )
 
-            output.absolutePath,
-        ).inheritIO()
-            .start()
-            .waitFor()
-        require(code == 0) { "ffmpeg exit=$code" }
+        // задаём названия сабов по имени папки
+        // индексы выходных субтитров начинаются после встроенных, но FFmpeg сам их пронумерует
+        subtitles.forEachIndexed { i, srt ->
+            val title = srt.parentFile?.name
+            args += listOf("-metadata:s:s:$i", "title=$title")
+        }
+
+        // Выходной файл
+        args += output.absolutePath
+        // ------------------------------------------------------
+
+        val resultCode = ProcessBuilder(args).inheritIO().start().waitFor()
+        require(resultCode == 0) { "ffmpeg exit=$resultCode" }
     }
 }
