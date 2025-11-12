@@ -5,6 +5,8 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
+    id("io.ktor.plugin") version "3.3.2"
+
     application
     id("com.gradleup.shadow") version "9.2.2"
 
@@ -22,14 +24,37 @@ kotlin {
     jvmToolchain(21)
 }
 
+val ktorVersion = "3.3.2"
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("io.ktor:ktor-server-cio:$ktorVersion")
+
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:${ktorVersion}")
+    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    implementation("io.ktor:ktor-server-request-validation:$ktorVersion")
+
+    implementation("io.ktor:ktor-server-openapi:$ktorVersion")
+    implementation("io.ktor:ktor-server-swagger:$ktorVersion")
+
+    implementation("ch.qos.logback:logback-classic:1.5.13")
+
+    implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
 
     testImplementation(kotlin("test"))
 }
 
 application {
-    mainClass.set("me.emyar.MainKt")
+    mainClass.set("me.emyar.MainKtorKt")
+}
+
+val buildOpenApiTask = tasks.named("buildOpenApi")
+
+tasks.named<ProcessResources>("processResources") {
+    dependsOn(buildOpenApiTask)
+    from(buildOpenApiTask.get().outputs.files) {
+        into("openapi")
+        include("**/*.json")
+    }
 }
 
 tasks.test {

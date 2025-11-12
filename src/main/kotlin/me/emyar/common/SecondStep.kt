@@ -6,9 +6,9 @@ object SecondStep {
 
     fun applyFilter(
         input: File,
-        audioTrack: String,
+        audioTrack: String, // TODO Data model
         data: LoudNormData,
-        subtitles: Collection<File>,
+        subtitles: Collection<SubsInfoDto>,
         output: File,
     ) {
         val audioTrackParts = audioTrack.split(':')
@@ -17,7 +17,7 @@ object SecondStep {
 
         val loudnormFilter = listOf(
             "I=-23",
-            "TP=-1",
+            "TP=-2",
             "LRA=7",
             "measured_I=${data.inputI}",
             "measured_TP=${data.inputTp}",
@@ -28,17 +28,23 @@ object SecondStep {
             "print_format=summary"
         ).joinToString(prefix = "loudnorm=", separator = ":")
 
+        val existingSubs = countExistingSubtitleStreams(input)
+
         // ----------------- формируем аргументы -----------------
         val args = mutableListOf(
             "ffmpeg",
             "-hide_banner", "-v", "error", "-stats",
             "-y",
             "-i", input.absolutePath, // вход №0 — исходное видео
+            "-fix_sub_duration",
         )
 
         // Добавляем каждый .srt как отдельный вход (№1, №2, ...)
-        subtitles.forEach {
-            args += listOf("-i", it.absolutePath)
+        subtitles.forEach { (file, _, _, charset) ->
+            if (charset != null) {
+                args += listOf("-sub_charenc", charset)
+            }
+            args += listOf("-i", file.absolutePath)
         }
 
         // копируем видео и существующие сабы
@@ -59,11 +65,13 @@ object SecondStep {
             "-map_metadata:s:a:0", metadataSource,
         )
 
-        // задаём названия сабов по имени папки
-        // индексы выходных субтитров начинаются после встроенных, но FFmpeg сам их пронумерует
-        subtitles.forEachIndexed { i, srt ->
-            val title = srt.parentFile?.name
-            args += listOf("-metadata:s:s:$i", "title=$title")
+        subtitles.forEachIndexed { i, (file, name, lang, _) ->
+            val outSubIndex = existingSubs + i
+            args += listOf("-metadata:s:s:$outSubIndex", "title=${name}")
+            if (lang != null) {
+                args += listOf("-metadata:s:s:$outSubIndex", "language=$lang")
+            }
+            args += listOf("-c:s:$outSubIndex", file.getSubsCodecByFileExtension())
         }
 
         // Выходной файл
@@ -72,5 +80,24 @@ object SecondStep {
 
         val resultCode = ProcessBuilder(args).inheritIO().start().waitFor()
         require(resultCode == 0) { "ffmpeg exit=$resultCode" }
+    }
+
+    private fun countExistingSubtitleStreams(input: File): Int {
+        return ProcessBuilder(
+            listOf(
+                "ffprobe", "-v", "error",
+                "-select_streams", "s",
+                "-show_entries", "stream=index",
+                "-of", "csv=p=0",
+                input.absolutePath,
+            )
+        )
+            .redirectErrorStream(true)
+            .start()
+            .also { it.waitFor() }
+            .inputStream
+            .bufferedReader()
+            .lineSequence()
+            .count(String::isNotBlank)
     }
 }

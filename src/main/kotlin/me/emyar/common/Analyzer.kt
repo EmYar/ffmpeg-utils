@@ -3,11 +3,27 @@ package me.emyar.common
 import kotlinx.serialization.json.Json
 import java.io.File
 
-object AudioTrackAnalyzer {
+object Analyzer {
 
     private val jsonRegex = """(?s)\{.*?"input_i".*?}""".toRegex()
 
-    fun analyze(file: File, trackIndex: String): LoudNormData {
+    fun getFileInfo(file: File): String {
+        val process = ProcessBuilder(
+            "ffprobe",
+            "-hide_banner",
+            file.absolutePath,
+        ).redirectErrorStream(false)
+            .start()
+
+        // ffprobe пишет результат в ERROR
+        val result = process.errorStream.bufferedReader().readText()
+
+        process.waitFor()
+
+        return result
+    }
+
+    fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData {
         val process = ProcessBuilder(
             "ffmpeg",
             "-hide_banner", "-nostats", "-v", "info",
