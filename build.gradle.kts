@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
 
 plugins {
     val kotlinVersion = "2.2.20"
@@ -10,7 +11,7 @@ plugins {
     application
     id("com.gradleup.shadow") version "9.2.2"
 
-    id("org.graalvm.buildtools.native") version "0.11.1"
+    id("org.graalvm.buildtools.native") version "0.11.3"
 }
 
 group = "me.emyar"
@@ -66,6 +67,16 @@ tasks.named<ShadowJar>("shadowJar") {
     archiveFileName.set(fatJarName)
 }
 
+val initializeAtBuildTime = arrayOf(
+    "me.emyar",
+    "io.ktor",
+    "kotlin",
+    "kotlinx",
+    "kotlinx.coroutines",
+    "org.slf4j.helpers",
+    "ch.qos.logback.classic.Logger",
+).joinToString(",")
+
 tasks.register<Exec>("nativeArm64Glibc") {
     dependsOn("shadowJar")
     commandLine(
@@ -74,15 +85,14 @@ tasks.register<Exec>("nativeArm64Glibc") {
         "-v", project.projectDir.absolutePath + ":/work",
         "-w", "/work",
         "ghcr.io/graalvm/native-image-community:latest",
-        "sh", "-lc",
-        """
-        native-image \
-          --no-fallback -O3 \
-          --initialize-at-build-time=kotlin,org.jetbrains,kotlinx.serialization \
-          -H:Name=ffnorm \
-          -H:+ReportExceptionStackTraces \
-          -jar build/libs/$fatJarName
-        """.trimIndent()
+
+        "--no-fallback",
+        "-O3",
+        "--initialize-at-build-time=$initializeAtBuildTime",
+        "-H:+UnlockExperimentalVMOptions",
+        "-H:Name=${project.name}-${project.version}",
+        "-H:+ReportExceptionStackTraces",
+        "-jar", "build/libs/$fatJarName",
     )
 }
 
@@ -92,14 +102,19 @@ graalvmNative {
             imageName.set("${project.name}-${project.version}")
             mainClass.set(application.mainClass.get())
             fallback.set(false)
+            useFatJar.set(true)
             buildArgs.addAll(
                 listOf(
                     "-O3",
-                    "--initialize-at-build-time=kotlin,org.jetbrains,kotlinx.serialization",
+                    "--initialize-at-build-time=$initializeAtBuildTime",
                     "-H:+ReportExceptionStackTraces"
                 )
             )
-            useFatJar.set(true)
         }
     }
+}
+
+tasks.wrapper {
+    distributionType = BIN
+    gradleVersion = "9.2.0"
 }

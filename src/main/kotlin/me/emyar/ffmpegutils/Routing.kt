@@ -1,11 +1,11 @@
-package me.emyar
+package me.emyar.ffmpegutils
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.sync.Mutex
-import me.emyar.batch.filesBatchRoute
-import me.emyar.common.fileInfo
-import me.emyar.single.singleFileRoute
+import me.emyar.ffmpegutils.processing.batch.filesBatchRoute
+import me.emyar.ffmpegutils.processing.common.fileInfo
+import me.emyar.ffmpegutils.processing.single.singleFileRoute
 
 /**
  * Выполняем обработку в порядке очереди в один поток

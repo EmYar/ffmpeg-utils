@@ -1,4 +1,4 @@
-package me.emyar
+package me.emyar.ffmpegutils
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*

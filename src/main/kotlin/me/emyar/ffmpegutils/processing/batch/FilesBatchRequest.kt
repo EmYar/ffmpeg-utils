@@ -1,4 +1,4 @@
-package me.emyar.batch
+package me.emyar.ffmpegutils.processing.batch
 
 import kotlinx.serialization.Serializable
 import java.nio.file.Path

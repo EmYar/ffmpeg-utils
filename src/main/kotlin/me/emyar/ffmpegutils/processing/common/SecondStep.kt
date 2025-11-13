@@ -1,8 +1,7 @@
-package me.emyar.common
+package me.emyar.ffmpegutils.processing.common
 
-import me.emyar.common.Analyzer.EBU_R128_CONFIG
-import me.emyar.models.LoudNormData
-import me.emyar.models.SubsInfoDto
+import me.emyar.ffmpegutils.models.LoudNormData
+import me.emyar.ffmpegutils.models.SubsInfoDto
 import java.io.File
 
 object SecondStep {
@@ -19,7 +18,7 @@ object SecondStep {
         val metadataSource = "${audioTrackParts[0]}:s:${audioTrackParts[1]}"
 
         val loudnormFilter = listOf(
-            EBU_R128_CONFIG,
+            Analyzer.EBU_R128_CONFIG,
             "measured_I=${data.inputI}",
             "measured_TP=${data.inputTp}",
             "measured_LRA=${data.inputLra}",

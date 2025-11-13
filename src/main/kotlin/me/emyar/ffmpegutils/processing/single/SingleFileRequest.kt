@@ -1,4 +1,4 @@
-package me.emyar.single
+package me.emyar.ffmpegutils.processing.single
 
 import kotlinx.serialization.Serializable
 

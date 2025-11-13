@@ -1,7 +1,7 @@
-package me.emyar.common
+package me.emyar.ffmpegutils.processing.common
 
 import kotlinx.serialization.json.Json
-import me.emyar.models.LoudNormData
+import me.emyar.ffmpegutils.models.LoudNormData
 import java.io.File
 
 object Analyzer {

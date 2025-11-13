@@ -1,4 +1,4 @@
-package me.emyar.common
+package me.emyar.ffmpegutils.processing.common
 
 import org.mozilla.universalchardet.UniversalDetector
 import java.io.File

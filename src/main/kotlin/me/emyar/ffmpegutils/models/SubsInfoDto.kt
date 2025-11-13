@@ -1,4 +1,4 @@
-package me.emyar.models
+package me.emyar.ffmpegutils.models
 
 import java.io.File
 

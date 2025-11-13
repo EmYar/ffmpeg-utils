@@ -1,4 +1,4 @@
-package me.emyar.common
+package me.emyar.ffmpegutils.processing.common
 
 import io.ktor.http.*
 import io.ktor.server.response.*

@@ -1,4 +1,4 @@
-package me.emyar.batch
+package me.emyar.ffmpegutils.processing.batch
 
 import io.ktor.http.*
 import io.ktor.server.request.*
@@ -9,9 +9,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import me.emyar.common.Analyzer
-import me.emyar.common.SecondStep
-import me.emyar.models.SubsInfoDto
+import me.emyar.ffmpegutils.models.SubsInfoDto
+import me.emyar.ffmpegutils.processing.common.Analyzer
+import me.emyar.ffmpegutils.processing.common.SecondStep
 import java.io.File
 import java.nio.file.Path
 
