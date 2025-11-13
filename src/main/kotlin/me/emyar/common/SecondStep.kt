@@ -1,5 +1,8 @@
 package me.emyar.common
 
+import me.emyar.common.Analyzer.EBU_R128_CONFIG
+import me.emyar.models.LoudNormData
+import me.emyar.models.SubsInfoDto
 import java.io.File
 
 object SecondStep {
@@ -16,9 +19,7 @@ object SecondStep {
         val metadataSource = "${audioTrackParts[0]}:s:${audioTrackParts[1]}"
 
         val loudnormFilter = listOf(
-            "I=-23",
-            "TP=-2",
-            "LRA=7",
+            EBU_R128_CONFIG,
             "measured_I=${data.inputI}",
             "measured_TP=${data.inputTp}",
             "measured_LRA=${data.inputLra}",
@@ -33,12 +34,14 @@ object SecondStep {
         // ----------------- формируем аргументы -----------------
         val args = mutableListOf(
             "ffmpeg",
-            "-hide_banner", "-v", "error", "-stats",
+            "-hide_banner", "-v", "warning", "-stats",
             "-y",
             "-i", input.absolutePath, // вход №0 — исходное видео
-            "-fix_sub_duration",
         )
 
+        if (subtitles.isNotEmpty()) {
+            args += "-fix_sub_duration"
+        }
         // Добавляем каждый .srt как отдельный вход (№1, №2, ...)
         subtitles.forEach { (file, _, _, charset) ->
             if (charset != null) {
@@ -71,33 +74,34 @@ object SecondStep {
             if (lang != null) {
                 args += listOf("-metadata:s:s:$outSubIndex", "language=$lang")
             }
-            args += listOf("-c:s:$outSubIndex", file.getSubsCodecByFileExtension())
+            args += listOf("-c:s:$outSubIndex", file.guessSubsCodecByFileExtension())
         }
 
         // Выходной файл
         args += output.absolutePath
         // ------------------------------------------------------
 
-        val resultCode = ProcessBuilder(args).inheritIO().start().waitFor()
-        require(resultCode == 0) { "ffmpeg exit=$resultCode" }
+        ProcessBuilder(args)
+            .inheritIO()
+            .start()
+            .waitFor()
+            .let { require(it == 0) { "ffmpeg exit=$it" } }
     }
 
-    private fun countExistingSubtitleStreams(input: File): Int {
-        return ProcessBuilder(
+    private fun countExistingSubtitleStreams(input: File): Int =
+        ProcessBuilder(
             listOf(
-                "ffprobe", "-v", "error",
+                "ffprobe", "-v", "warning",
                 "-select_streams", "s",
                 "-show_entries", "stream=index",
                 "-of", "csv=p=0",
                 input.absolutePath,
             )
-        )
-            .redirectErrorStream(true)
+        ).redirectErrorStream(true)
             .start()
-            .also { it.waitFor() }
+            .also(Process::waitFor)
             .inputStream
             .bufferedReader()
             .lineSequence()
             .count(String::isNotBlank)
-    }
 }

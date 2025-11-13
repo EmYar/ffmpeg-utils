@@ -11,7 +11,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import me.emyar.common.Analyzer
 import me.emyar.common.SecondStep
-import me.emyar.common.SubsInfoDto
+import me.emyar.models.SubsInfoDto
 import java.io.File
 import java.nio.file.Path
 

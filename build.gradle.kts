@@ -36,7 +36,7 @@ dependencies {
     implementation("io.ktor:ktor-server-openapi:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
 
-    implementation("ch.qos.logback:logback-classic:1.5.13")
+    implementation("ch.qos.logback:logback-classic:1.5.21")
 
     implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
 

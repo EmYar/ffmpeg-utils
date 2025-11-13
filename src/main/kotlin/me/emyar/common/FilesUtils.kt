@@ -15,11 +15,11 @@ fun File.detectCharset(): String? {
         detector.dataEnd()
         val charset = detector.detectedCharset
         detector.reset()
-        return charset // например "windows-1251", "UTF-8", "KOI8-R" или null
+        return charset
     }
 }
 
-fun File.getSubsCodecByFileExtension(): String =
+fun File.guessSubsCodecByFileExtension(): String =
     when (extension.lowercase()) {
         "srt", "subrip" -> "srt"
         "ass", "ssa" -> "ass"

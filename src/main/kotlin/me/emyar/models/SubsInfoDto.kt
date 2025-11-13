@@ -1,4 +1,4 @@
-package me.emyar.common
+package me.emyar.models
 
 import java.io.File
 

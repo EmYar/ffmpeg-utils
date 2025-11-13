@@ -1,45 +1,37 @@
 package me.emyar.common
 
 import kotlinx.serialization.json.Json
+import me.emyar.models.LoudNormData
 import java.io.File
 
 object Analyzer {
 
     private val jsonRegex = """(?s)\{.*?"input_i".*?}""".toRegex()
 
-    fun getFileInfo(file: File): String {
-        val process = ProcessBuilder(
+    const val EBU_R128_CONFIG = "I=-23:TP=-2:LRA=7"
+
+    fun getFileInfo(file: File): String =
+        ProcessBuilder(
             "ffprobe",
             "-hide_banner",
             file.absolutePath,
-        ).redirectErrorStream(false)
+        ).redirectErrorStream(true) // ffprobe пишет результат в ERROR
             .start()
+            .also(Process::waitFor)
+            .inputStream.bufferedReader().readText()
 
-        // ffprobe пишет результат в ERROR
-        val result = process.errorStream.bufferedReader().readText()
-
-        process.waitFor()
-
-        return result
-    }
-
-    fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData {
-        val process = ProcessBuilder(
+    fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData =
+        ProcessBuilder(
             "ffmpeg",
             "-hide_banner", "-nostats", "-v", "info",
             "-i", file.absolutePath,
             "-map", trackIndex,
-            "-filter:a", "aformat=channel_layouts=stereo,loudnorm=I=-23:TP=-1:LRA=7:print_format=json",
+            "-filter:a", "aformat=channel_layouts=stereo,loudnorm=$EBU_R128_CONFIG:print_format=json",
             "-f", "null", "-",
-        ).redirectErrorStream(false)
+        ).redirectErrorStream(true)
             .start()
-        try {
-            val output = process.errorStream.bufferedReader().readText()
-            val jsonStr = jsonRegex.findAll(output).last().value
-
-            return Json.decodeFromString<LoudNormData>(jsonStr)
-        } finally {
-            process.waitFor()
-        }
-    }
+            .also(Process::waitFor)
+            .inputStream.bufferedReader().readText()
+            .let { jsonRegex.findAll(it).last().value }
+            .let { Json.decodeFromString<LoudNormData>(it) }
 }
