@@ -1,6 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
-import org.gradle.jvm.toolchain.JvmVendorSpec.GRAAL_VM
 
 plugins {
     val kotlinVersion = "2.2.20"
@@ -21,18 +20,11 @@ repositories {
     mavenCentral()
 }
 
-fun JavaToolchainSpec.setUpToolchain() {
-    languageVersion.set(JavaLanguageVersion.of(24))
-    vendor.set(GRAAL_VM)
-}
-
 kotlin {
     jvmToolchain {
-        setUpToolchain()
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
-
-java.toolchain.setUpToolchain()
 
 val ktorVersion = "3.3.2"
 dependencies {
@@ -79,6 +71,8 @@ val initializeAtBuildTime = arrayOf(
     "ch.qos.logback",
 ).joinToString(",")
 
+val defaultHeapSize = "32m"
+
 tasks.register<Exec>("nativeArm64Glibc") {
     dependsOn("shadowJar")
     commandLine(
@@ -94,6 +88,7 @@ tasks.register<Exec>("nativeArm64Glibc") {
         "-H:+UnlockExperimentalVMOptions",
         "-H:Name=${project.name}-${project.version}",
         "-H:+ReportExceptionStackTraces",
+        "-R:MaxHeapSize=$defaultHeapSize",
         "-jar", "build/libs/$fatJarName",
     )
 }
@@ -101,12 +96,6 @@ tasks.register<Exec>("nativeArm64Glibc") {
 graalvmNative {
     binaries {
         named("main") {
-            javaLauncher.set(
-                javaToolchains.launcherFor {
-                    setUpToolchain()
-                }
-            )
-
             imageName.set("${project.name}-${project.version}")
             mainClass.set(application.mainClass.get())
             fallback.set(false)
@@ -115,7 +104,8 @@ graalvmNative {
                 listOf(
                     "-O3",
                     "--initialize-at-build-time=$initializeAtBuildTime",
-                    "-H:+ReportExceptionStackTraces"
+                    "-H:+ReportExceptionStackTraces",
+                    "-R:MaxHeapSize=$defaultHeapSize",
                 )
             )
         }
