@@ -85,7 +85,7 @@ docker run --rm \
   -w /work \
   ghcr.io/graalvm/native-image-community:latest \
   --no-fallback \
-  -Ob \
+  -O3 \
   -march=native \
   --initialize-at-build-time=me.emyar.ffmpegutils,io.ktor,kotlin,kotlinx,org.slf4j,ch.qos.logback \
   -H:+ReportExceptionStackTraces \
