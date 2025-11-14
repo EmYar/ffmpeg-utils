@@ -1,5 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
+import org.gradle.jvm.toolchain.JvmVendorSpec.GRAAL_VM
 
 plugins {
     val kotlinVersion = "2.2.20"
@@ -8,7 +9,6 @@ plugins {
 
     id("io.ktor.plugin") version "3.3.2"
 
-    application
     id("com.gradleup.shadow") version "9.2.2"
 
     id("org.graalvm.buildtools.native") version "0.11.3"
@@ -21,9 +21,18 @@ repositories {
     mavenCentral()
 }
 
-kotlin {
-    jvmToolchain(21)
+fun JavaToolchainSpec.setUpToolchain() {
+    languageVersion.set(JavaLanguageVersion.of(24))
+    vendor.set(GRAAL_VM)
 }
+
+kotlin {
+    jvmToolchain {
+        setUpToolchain()
+    }
+}
+
+java.toolchain.setUpToolchain()
 
 val ktorVersion = "3.3.2"
 dependencies {
@@ -45,17 +54,11 @@ dependencies {
 }
 
 application {
-    mainClass.set("me.emyar.MainKtorKt")
+    mainClass.set("me.emyar.ffmpegutils.MainKtorKt")
 }
 
-val buildOpenApiTask = tasks.named("buildOpenApi")
-
-tasks.named<ProcessResources>("processResources") {
-    dependsOn(buildOpenApiTask)
-    from(buildOpenApiTask.get().outputs.files) {
-        into("openapi")
-        include("**/*.json")
-    }
+tasks.processResources {
+    dependsOn("buildOpenApi")
 }
 
 tasks.test {
@@ -68,13 +71,12 @@ tasks.named<ShadowJar>("shadowJar") {
 }
 
 val initializeAtBuildTime = arrayOf(
-    "me.emyar",
+    "me.emyar.ffmpegutils",
     "io.ktor",
     "kotlin",
     "kotlinx",
-    "kotlinx.coroutines",
-    "org.slf4j.helpers",
-    "ch.qos.logback.classic.Logger",
+    "org.slf4j",
+    "ch.qos.logback",
 ).joinToString(",")
 
 tasks.register<Exec>("nativeArm64Glibc") {
@@ -99,6 +101,12 @@ tasks.register<Exec>("nativeArm64Glibc") {
 graalvmNative {
     binaries {
         named("main") {
+            javaLauncher.set(
+                javaToolchains.launcherFor {
+                    setUpToolchain()
+                }
+            )
+
             imageName.set("${project.name}-${project.version}")
             mainClass.set(application.mainClass.get())
             fallback.set(false)
