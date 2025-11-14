@@ -1,6 +1,6 @@
 package me.emyar.ffmpegutils.processing.common
 
-val FFTOOLS_PREFIX: String = System.getenv("FFTOOLS_PREFIX")
+val FFTOOLS_PREFIX = System.getenv("FFTOOLS_PREFIX") ?: ""
 
 val FFMPEG_CMD = "$FFTOOLS_PREFIX ffmpeg".trim()
 
