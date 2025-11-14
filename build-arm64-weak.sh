@@ -5,10 +5,59 @@ set -euo pipefail
 PROJECT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$PROJECT_DIR"
 
+# --- CPU governor handling ---
+
+ORIG_GOVERNORS=()
+
+restore_governors() {
+  if [[ ${#ORIG_GOVERNORS[@]} -eq 0 ]]; then
+    return
+  fi
+
+  echo "==> Restoring previous CPU governors"
+  for entry in "${ORIG_GOVERNORS[@]}"; do
+    IFS=: read -r gov_file gov_value <<< "$entry"
+    if [[ -w "$gov_file" ]]; then
+      echo "$gov_value" > "$gov_file" || \
+        echo "Warning: failed to restore governor for $gov_file" >&2
+    else
+      echo "Warning: governor file not writable: $gov_file" >&2
+    fi
+  done
+}
+
+# Ensure governors are restored on any exit (success, error, Ctrl+C)
+trap restore_governors EXIT
+
+set_governors_to_performance() {
+  local cpu_dir gov_file current
+  local found_any=false
+
+  for cpu_dir in /sys/devices/system/cpu/cpu[0-9]*; do
+    gov_file="$cpu_dir/cpufreq/scaling_governor"
+    if [[ -f "$gov_file" && -r "$gov_file" && -w "$gov_file" ]]; then
+      found_any=true
+      current="$(<"$gov_file")"
+      ORIG_GOVERNORS+=("$gov_file:$current")
+      if [[ "$current" != "performance" ]]; then
+        echo "Setting governor for $(basename "$cpu_dir") from '$current' to 'performance'"
+        echo "performance" > "$gov_file"
+      fi
+    fi
+  done
+
+  if [[ "$found_any" != true ]]; then
+    echo "Warning: no writable scaling_governor files found; CPU governor will not be changed" >&2
+  fi
+}
+
+echo "==> Step 0. Setting CPU governor to 'performance' (if possible)"
+set_governors_to_performance
+
 echo "==> Step 1. Building fat JAR via Gradle"
 
 # Build shadowJar (fat JAR)
-./gradlew --no-daemon shadowJar
+./gradlew --no-daemon --configure-on-demand shadowJar
 
 # Find the fat JAR (something like build/libs/name-version-all.jar)
 JAR_PATH=$(ls build/libs/*-all.jar 2>/dev/null | head -n 1 || true)
@@ -31,21 +80,15 @@ echo "==> Step 2. Building native image via Docker (GraalVM)"
 # Ensure target directory exists
 mkdir -p build/distributions
 
-# Classes/packages to initialize at build time
-INITIALIZE_AT_BUILD_TIME="me.emyar.ffmpegutils,io.ktor,kotlin,kotlinx,org.slf4j,ch.qos.logback"
-
-# Limit container memory
-DOCKER_MEMORY_OPTS=(--memory=2g --memory-swap=2g)
-
 docker run --rm \
-  "${DOCKER_MEMORY_OPTS[@]}" \
+  --memory=2560m --memory-swap=2560m \
   -v "$PWD:/work" \
   -w /work \
   ghcr.io/graalvm/native-image-community:latest \
   --no-fallback \
   -Ob \
   -march=native \
-  "--initialize-at-build-time=${INITIALIZE_AT_BUILD_TIME}" \
+  --initialize-at-build-time=me.emyar.ffmpegutils,io.ktor,kotlin,kotlinx,org.slf4j,ch.qos.logback \
   -H:+ReportExceptionStackTraces \
   -R:MaxHeapSize=32m \
   -o "build/distributions/$BINARY_NAME" \
