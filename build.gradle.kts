@@ -71,6 +71,7 @@ graalvmNative {
                     "--initialize-at-build-time=$initializeAtBuildTime",
                     "-H:+ReportExceptionStackTraces",
                     "-R:MaxHeapSize=32m",
+                    """-H:IncludeResources=openapi/.*\.json""",
                 )
             )
         }
