@@ -88,9 +88,10 @@ tasks {
 
     val buildNativeDockerImage = register<Exec>("buildNativeDockerImage") {
         doFirst {
-            val platformTag = project.findProperty(platformTag) as String?
-                ?: error("Please provide docker registry: -P$dockerRegistryEnv=host:port")
             val appVersion = project.version.toString()
+            val platformTag = (project.findProperty(platformTagProp) as String?)
+                ?: error("Please provide platform tag via -P$platformTagProp=rock4Bplus")
+
             val imageTag = project.resolveDockerImageTag(requireRegistry = false)
 
             println("Building Docker image: $imageTag")
@@ -111,11 +112,8 @@ tasks {
         dependsOn(buildNativeDockerImage)
 
         doFirst {
-            val registry = project.findProperty(dockerRegistryEnv) as String?
-                ?: error("Please provide docker registry: -P$dockerRegistryEnv=host:port")
-
-            val imageTag = "$registry/${project.name}:latest"
-
+            val imageTag = project.resolveDockerImageTag(requireRegistry = true)
+            println("Pushing Docker image: $imageTag")
             commandLine("docker", "push", imageTag)
         }
     }
@@ -130,16 +128,18 @@ tasks {
     }
 }
 
-val dockerRegistryEnv = "dockerRegistry"
-val platformTag = "platformTag"
+val dockerRegistryProp = "dockerRegistry"
+val platformTagProp = "platformTag"
 
 fun Project.resolveDockerImageTag(requireRegistry: Boolean): String {
-    val registry = findProperty(dockerRegistryEnv) as String?
-    val platformTag = findProperty(platformTag) as String
+    val registry = findProperty(dockerRegistryProp) as String?
+    val platformTag = (findProperty(platformTagProp) as String?)
+        ?: error("Please provide platform tag via -P$platformTagProp=rock4Bplus")
+
     val appVersion = version.toString()
 
     if (requireRegistry && registry.isNullOrBlank()) {
-        error("Please provide docker registry via -P$dockerRegistryEnv=host:port")
+        error("Please provide docker registry via -P$dockerRegistryProp=host:port")
     }
 
     val imageName = if (registry.isNullOrBlank()) {
