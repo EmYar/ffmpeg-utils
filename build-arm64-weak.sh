@@ -26,21 +26,20 @@ restore_governors() {
   done
 }
 
-# Ensure governors are restored on any exit (success, error, Ctrl+C)
 trap restore_governors EXIT
 
 set_governors_to_performance() {
-  local cpu_dir gov_file current
+  local p gov_file current
   local found_any=false
 
-  for cpu_dir in /sys/devices/system/cpu/cpu[0-9]*; do
-    gov_file="$cpu_dir/cpufreq/scaling_governor"
+  for p in /sys/devices/system/cpu/cpufreq/policy*; do
+    gov_file="$p/scaling_governor"
     if [[ -f "$gov_file" && -r "$gov_file" && -w "$gov_file" ]]; then
       found_any=true
       current="$(<"$gov_file")"
       ORIG_GOVERNORS+=("$gov_file:$current")
       if [[ "$current" != "performance" ]]; then
-        echo "Setting governor for $(basename "$cpu_dir") from '$current' to 'performance'"
+        echo "Setting governor for $(basename "$p") from '$current' to 'performance'"
         echo "performance" > "$gov_file"
       fi
     fi
