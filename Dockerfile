@@ -6,7 +6,6 @@ ARG PLATFORM_TAG
 ENV APP_VERSION=${APP_VERSION}
 ENV PLATFORM_TAG=${PLATFORM_TAG}
 
-ENV PORT=8080
 ENV FFTOOLS_PREFIX=""
 
 LABEL org.opencontainers.image.title="ffmpeg-utils" \
