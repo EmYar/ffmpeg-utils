@@ -59,7 +59,7 @@ echo "==> Step 1. Building fat JAR via Gradle"
 ./gradlew --no-daemon --configure-on-demand shadowJar
 
 # Find the fat JAR (something like build/libs/name-version-all.jar)
-JAR_PATH=$(ls build/libs/*-all.jar 2>/dev/null | head -n 1 || true)
+JAR_PATH=$(find build/libs -maxdepth 1 -type f -name '*-all.jar' -print -quit 2>/dev/null || true)
 
 if [[ -z "$JAR_PATH" || ! -f "$JAR_PATH" ]]; then
   echo "Error: could not find fat JAR in build/libs/*-all.jar" >&2

@@ -49,19 +49,6 @@ application {
     mainClass.set("me.emyar.ffmpegutils.MainKtorKt")
 }
 
-tasks.processResources {
-    dependsOn("buildOpenApi")
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-val fatJarName = "${project.name}-${project.version}-all.jar"
-tasks.named<ShadowJar>("shadowJar") {
-    archiveFileName.set(fatJarName)
-}
-
 val initializeAtBuildTime = arrayOf(
     "me.emyar.ffmpegutils",
     "io.ktor",
@@ -71,32 +58,10 @@ val initializeAtBuildTime = arrayOf(
     "ch.qos.logback",
 ).joinToString(",")
 
-val defaultHeapSize = "32m"
-
-tasks.register<Exec>("nativeArm64Glibc") {
-    dependsOn("shadowJar")
-    commandLine(
-        "docker", "run", "--rm",
-        "--platform", "linux/arm64",
-        "-v", project.projectDir.absolutePath + ":/work",
-        "-w", "/work",
-        "ghcr.io/graalvm/native-image-community:latest",
-
-        "--no-fallback",
-        "-O3",
-        "--initialize-at-build-time=$initializeAtBuildTime",
-        "-H:+UnlockExperimentalVMOptions",
-        "-H:Name=${project.name}-${project.version}",
-        "-H:+ReportExceptionStackTraces",
-        "-R:MaxHeapSize=$defaultHeapSize",
-        "-jar", "build/libs/$fatJarName",
-    )
-}
-
 graalvmNative {
     binaries {
         named("main") {
-            imageName.set("${project.name}-${project.version}")
+            imageName.set(project.name)
             mainClass.set(application.mainClass.get())
             fallback.set(false)
             useFatJar.set(true)
@@ -105,14 +70,83 @@ graalvmNative {
                     "-O3",
                     "--initialize-at-build-time=$initializeAtBuildTime",
                     "-H:+ReportExceptionStackTraces",
-                    "-R:MaxHeapSize=$defaultHeapSize",
+                    "-R:MaxHeapSize=32m",
                 )
             )
         }
     }
 }
 
-tasks.wrapper {
-    distributionType = BIN
-    gradleVersion = "9.2.0"
+tasks {
+    processResources {
+        dependsOn("buildOpenApi")
+    }
+
+    named<ShadowJar>("shadowJar") {
+        archiveFileName.set("${project.name}-all.jar")
+    }
+
+    val buildNativeDockerImage = register<Exec>("buildNativeDockerImage") {
+        doFirst {
+            val platformTag = project.findProperty(platformTag) as String?
+                ?: error("Please provide docker registry: -P$dockerRegistryEnv=host:port")
+            val appVersion = project.version.toString()
+            val imageTag = project.resolveDockerImageTag(requireRegistry = false)
+
+            println("Building Docker image: $imageTag")
+            println("APP_VERSION = $appVersion")
+            println("PLATFORM_TAG = $platformTag")
+
+            commandLine(
+                "docker", "build",
+                "--build-arg", "APP_VERSION=$appVersion",
+                "--build-arg", "PLATFORM_TAG=$platformTag",
+                "-t", imageTag,
+                ".",
+            )
+        }
+    }
+
+    register<Exec>("pushNativeDockerImage") {
+        dependsOn(buildNativeDockerImage)
+
+        doFirst {
+            val registry = project.findProperty(dockerRegistryEnv) as String?
+                ?: error("Please provide docker registry: -P$dockerRegistryEnv=host:port")
+
+            val imageTag = "$registry/${project.name}:latest"
+
+            commandLine("docker", "push", imageTag)
+        }
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    wrapper {
+        distributionType = BIN
+        gradleVersion = "9.2.0"
+    }
+}
+
+val dockerRegistryEnv = "dockerRegistry"
+val platformTag = "platformTag"
+
+fun Project.resolveDockerImageTag(requireRegistry: Boolean): String {
+    val registry = findProperty(dockerRegistryEnv) as String?
+    val platformTag = findProperty(platformTag) as String
+    val appVersion = version.toString()
+
+    if (requireRegistry && registry.isNullOrBlank()) {
+        error("Please provide docker registry via -P$dockerRegistryEnv=host:port")
+    }
+
+    val imageName = if (registry.isNullOrBlank()) {
+        project.name
+    } else {
+        "$registry/${project.name}"
+    }
+
+    return "$imageName:$appVersion-$platformTag"
 }

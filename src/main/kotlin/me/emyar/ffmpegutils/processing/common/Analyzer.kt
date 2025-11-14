@@ -8,21 +8,19 @@ object Analyzer {
 
     private val jsonRegex = """(?s)\{.*?"input_i".*?}""".toRegex()
 
-    const val EBU_R128_CONFIG = "I=-23:TP=-2:LRA=7"
-
     fun getFileInfo(file: File): String =
         ProcessBuilder(
-            "ffprobe",
+            FFPROBE_CMD,
             "-hide_banner",
             file.absolutePath,
-        ).redirectErrorStream(true) // ffprobe пишет результат в ERROR
+        ).redirectErrorStream(true)
             .start()
             .also(Process::waitFor)
             .inputStream.bufferedReader().readText()
 
     fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData =
         ProcessBuilder(
-            "ffmpeg",
+            FFMPEG_CMD,
             "-hide_banner", "-nostats", "-v", "info",
             "-i", file.absolutePath,
             "-map", trackIndex,

@@ -18,7 +18,7 @@ object SecondStep {
         val metadataSource = "${audioTrackParts[0]}:s:${audioTrackParts[1]}"
 
         val loudnormFilter = listOf(
-            Analyzer.EBU_R128_CONFIG,
+            EBU_R128_CONFIG,
             "measured_I=${data.inputI}",
             "measured_TP=${data.inputTp}",
             "measured_LRA=${data.inputLra}",
@@ -32,7 +32,7 @@ object SecondStep {
 
         // ----------------- формируем аргументы -----------------
         val args = mutableListOf(
-            "ffmpeg",
+            FFMPEG_CMD,
             "-hide_banner", "-v", "warning", "-stats",
             "-y",
             "-i", input.absolutePath, // вход №0 — исходное видео
@@ -90,7 +90,7 @@ object SecondStep {
     private fun countExistingSubtitleStreams(input: File): Int =
         ProcessBuilder(
             listOf(
-                "ffprobe", "-v", "warning",
+                FFPROBE_CMD, "-v", "warning",
                 "-select_streams", "s",
                 "-show_entries", "stream=index",
                 "-of", "csv=p=0",
