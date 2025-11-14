@@ -32,7 +32,7 @@ echo "==> Step 2. Building native image via Docker (GraalVM)"
 mkdir -p build/distributions
 
 docker run --rm \
-  --memory=2560m --memory-swap=2560m \
+  --memory=3g --memory-swap=3g \
   -v "$PWD:/work" \
   -w /work \
   ghcr.io/graalvm/native-image-community:latest \
