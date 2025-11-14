@@ -92,9 +92,9 @@ tasks {
             val platformTag = (project.findProperty(platformTagProp) as String?)
                 ?: error("Please provide platform tag via -P$platformTagProp=rock4Bplus")
 
-            val imageTag = project.resolveDockerImageTag(requireRegistry = false)
+            val versionTag = project.resolveDockerImageTag(requireRegistry = false)
 
-            println("Building Docker image: $imageTag")
+            println("Building Docker image: $versionTag")
             println("APP_VERSION = $appVersion")
             println("PLATFORM_TAG = $platformTag")
 
@@ -102,7 +102,7 @@ tasks {
                 "docker", "build",
                 "--build-arg", "APP_VERSION=$appVersion",
                 "--build-arg", "PLATFORM_TAG=$platformTag",
-                "-t", imageTag,
+                "-t", versionTag,
                 ".",
             )
         }
@@ -112,9 +112,31 @@ tasks {
         dependsOn(buildNativeDockerImage)
 
         doFirst {
-            val imageTag = project.resolveDockerImageTag(requireRegistry = true)
-            println("Pushing Docker image: $imageTag")
-            commandLine("docker", "push", imageTag)
+            val registry = project.findProperty(dockerRegistryProp) as String?
+                ?: error("Please provide docker registry via -P$dockerRegistryProp=host:port")
+
+            val platformTag = (project.findProperty(platformTagProp) as String?)
+                ?: error("Please provide platform tag via -P$platformTagProp=rock4Bplus")
+
+            val versionTag = project.resolveDockerImageTag(requireRegistry = true)
+            val imageBase = "$registry/${project.name}"
+            val latestTag = "$imageBase:latest-$platformTag"
+
+            println("Tagging Docker image:")
+            println("  from: $versionTag")
+            println("    to: $latestTag")
+            println("Pushing Docker images:")
+            println("  $versionTag")
+            println("  $latestTag")
+
+            val script = """
+                set -e
+                docker tag "$versionTag" "$latestTag"
+                docker push "$versionTag"
+                docker push "$latestTag"
+            """.trimIndent()
+
+            commandLine("sh", "-c", script)
         }
     }
 
