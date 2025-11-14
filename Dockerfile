@@ -1,4 +1,4 @@
-FROM alpine:3.20
+FROM debian:bookworm-slim
 
 ARG APP_VERSION
 ARG PLATFORM_TAG
@@ -16,5 +16,7 @@ LABEL org.opencontainers.image.title="ffmpeg-utils" \
 COPY build/distributions/ffmpeg-utils /usr/local/bin/ffmpeg-utils
 
 RUN chmod +x /usr/local/bin/ffmpeg-utils
+
+EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/ffmpeg-utils"]
