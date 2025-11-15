@@ -41,7 +41,7 @@ docker run --rm \
   -march=native \
   --initialize-at-build-time=me.emyar.ffmpegutils,io.ktor,kotlin,kotlinx,org.slf4j,ch.qos.logback \
   -H:+ReportExceptionStackTraces \
-  --enable-url-protocols=http \
+  --enable-http \
   -R:MaxHeapSize=32m \
   -o "build/distributions/$BINARY_NAME" \
   -jar "$JAR_PATH"

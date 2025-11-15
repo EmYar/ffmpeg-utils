@@ -71,7 +71,7 @@ graalvmNative {
                     "-march=native",
                     "--initialize-at-build-time=$initializeAtBuildTime",
                     "-H:+ReportExceptionStackTraces",
-                    "--enable-url-protocols=http",
+                    "--enable-http",
                     "-R:MaxHeapSize=32m",
                 )
             )
