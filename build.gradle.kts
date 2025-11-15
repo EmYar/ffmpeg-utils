@@ -51,11 +51,8 @@ application {
 
 val initializeAtBuildTime = arrayOf(
     "me.emyar.ffmpegutils",
-    "io.ktor",
     "kotlin",
     "kotlinx",
-    "org.slf4j",
-    "ch.qos.logback",
 ).joinToString(",")
 
 graalvmNative {
