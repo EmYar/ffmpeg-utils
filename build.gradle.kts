@@ -68,10 +68,11 @@ graalvmNative {
             buildArgs.addAll(
                 listOf(
                     "-O3",
+                    "-march=native",
                     "--initialize-at-build-time=$initializeAtBuildTime",
                     "-H:+ReportExceptionStackTraces",
+                    "--enable-url-protocols=http",
                     "-R:MaxHeapSize=32m",
-                    """-H:IncludeResources=openapi/.*\.json""",
                 )
             )
         }
@@ -87,58 +88,65 @@ tasks {
         archiveFileName.set("${project.name}-all.jar")
     }
 
+    val dockerRegistryProp = "dockerRegistry"
+    val platformTagProp = "platformTag"
+    val registryProvider = providers.gradleProperty(dockerRegistryProp)
+    val platformTagProvider = providers.gradleProperty(platformTagProp)
+
+    val appVersion = project.version.toString()
+
+    val versionTagProvider = providers.provider {
+        val platformTag = platformTagProvider.orNull
+            ?: error("Please provide platform tag via -P$platformTagProp=rock4Bplus")
+        val registry = registryProvider.orNull
+        project.resolveDockerImageTag(registry, platformTag)
+    }
+
+    val latestTagProvider = providers.provider {
+        val registry = registryProvider.orNull
+            ?: error("Please provide docker registry via -P$dockerRegistryProp=host:port")
+        val platformTag = platformTagProvider.get()
+        "$registry/${project.name}:latest-$platformTag"
+    }
+
     val buildNativeDockerImage = register<Exec>("buildNativeDockerImage") {
-        doFirst {
-            val appVersion = project.version.toString()
-            val platformTag = (project.findProperty(platformTagProp) as String?)
-                ?: error("Please provide platform tag via -P$platformTagProp=rock4Bplus")
+        val platformTag = platformTagProvider.get()
+        val versionTag = versionTagProvider.get()
 
-            val versionTag = project.resolveDockerImageTag(requireRegistry = false)
+        println("Building Docker image: $versionTag")
+        println("APP_VERSION = $appVersion")
+        println("PLATFORM_TAG = $platformTag")
 
-            println("Building Docker image: $versionTag")
-            println("APP_VERSION = $appVersion")
-            println("PLATFORM_TAG = $platformTag")
-
-            commandLine(
-                "docker", "build",
-                "--build-arg", "APP_VERSION=$appVersion",
-                "--build-arg", "PLATFORM_TAG=$platformTag",
-                "-t", versionTag,
-                ".",
-            )
-        }
+        commandLine(
+            "docker", "build",
+            "--build-arg", "APP_VERSION=$appVersion",
+            "--build-arg", "PLATFORM_TAG=$platformTag",
+            "-t", versionTag,
+            ".",
+        )
     }
 
     register<Exec>("pushNativeDockerImage") {
         dependsOn(buildNativeDockerImage)
 
-        doFirst {
-            val registry = project.findProperty(dockerRegistryProp) as String?
-                ?: error("Please provide docker registry via -P$dockerRegistryProp=host:port")
+        val versionTag = versionTagProvider.get()
+        val latestTag = latestTagProvider.get()
 
-            val platformTag = (project.findProperty(platformTagProp) as String?)
-                ?: error("Please provide platform tag via -P$platformTagProp=rock4Bplus")
+        println("Tagging Docker image:")
+        println("  from: $versionTag")
+        println("    to: $latestTag")
+        println("Pushing Docker images:")
+        println("  $versionTag")
+        println("  $latestTag")
 
-            val versionTag = project.resolveDockerImageTag(requireRegistry = true)
-            val imageBase = "$registry/${project.name}"
-            val latestTag = "$imageBase:latest-$platformTag"
+        val script = """
+            set -e
+            docker tag "$versionTag" "$latestTag"
+            docker push "$versionTag"
+            docker push "$latestTag"
+        """.trimIndent()
 
-            println("Tagging Docker image:")
-            println("  from: $versionTag")
-            println("    to: $latestTag")
-            println("Pushing Docker images:")
-            println("  $versionTag")
-            println("  $latestTag")
-
-            val script = """
-                set -e
-                docker tag "$versionTag" "$latestTag"
-                docker push "$versionTag"
-                docker push "$latestTag"
-            """.trimIndent()
-
-            commandLine("sh", "-c", script)
-        }
+        commandLine("sh", "-c", script)
     }
 
     test {
@@ -151,24 +159,13 @@ tasks {
     }
 }
 
-val dockerRegistryProp = "dockerRegistry"
-val platformTagProp = "platformTag"
-
-fun Project.resolveDockerImageTag(requireRegistry: Boolean): String {
-    val registry = findProperty(dockerRegistryProp) as String?
-    val platformTag = (findProperty(platformTagProp) as String?)
-        ?: error("Please provide platform tag via -P$platformTagProp=rock4Bplus")
-
+fun Project.resolveDockerImageTag(registry: String?, platformTag: String): String {
     val appVersion = version.toString()
 
-    if (requireRegistry && registry.isNullOrBlank()) {
-        error("Please provide docker registry via -P$dockerRegistryProp=host:port")
-    }
-
     val imageName = if (registry.isNullOrBlank()) {
-        project.name
+        name
     } else {
-        "$registry/${project.name}"
+        "$registry/$name"
     }
 
     return "$imageName:$appVersion-$platformTag"
