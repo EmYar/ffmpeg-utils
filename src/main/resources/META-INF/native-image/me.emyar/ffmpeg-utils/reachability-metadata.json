@@ -112,6 +112,9 @@
       "type": "io.ktor.http.content.TextContent"
     },
     {
+      "type": "io.ktor.http.content.Version"
+    },
+    {
       "type": "io.ktor.network.selector.InterestSuspensionsMap"
     },
     {
@@ -140,6 +143,12 @@
     },
     {
       "type": "io.ktor.server.engine.BaseApplicationResponse"
+    },
+    {
+      "type": "io.ktor.server.http.content.CompressedFileType"
+    },
+    {
+      "type": "io.ktor.server.http.content.LocalFileContent"
     },
     {
       "type": "io.ktor.server.plugins.MutableOriginConnectionPoint"
@@ -859,6 +868,9 @@
       "type": "java.util.LinkedHashMap"
     },
     {
+      "type": "java.util.List"
+    },
+    {
       "type": "java.util.Map",
       "methods": [
         {
@@ -925,6 +937,9 @@
     },
     {
       "type": "kotlin.Unit"
+    },
+    {
+      "type": "kotlin.collections.List"
     },
     {
       "type": "kotlin.collections.Map"
