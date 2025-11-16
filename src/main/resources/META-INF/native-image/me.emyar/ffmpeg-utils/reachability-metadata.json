@@ -115,7 +115,21 @@
       "type": "io.ktor.http.content.Version"
     },
     {
-      "type": "io.ktor.network.selector.InterestSuspensionsMap"
+      "type": "io.ktor.network.selector.InterestSuspensionsMap",
+      "fields": [
+        {
+          "name": "readHandlerReference"
+        },
+        {
+          "name": "writeHandlerReference"
+        },
+        {
+          "name": "acceptHandlerReference"
+        },
+        {
+          "name": "connectHandlerReference"
+        }
+      ]
     },
     {
       "type": "io.ktor.network.selector.LockFreeMPSCQueue"
