@@ -35,7 +35,6 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-request-validation:$ktorVersion")
 
-    implementation("io.ktor:ktor-server-openapi:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
 
     implementation("ch.qos.logback:logback-classic:1.5.21")
