@@ -33,6 +33,8 @@ mkdir -p build/distributions
 
 docker run --rm \
   --memory=3g --memory-swap=3g \
+  -e LANG=C.UTF-8 \
+  -e LC_ALL=C.UTF-8 \
   -v "$PWD:/work" \
   -w /work \
   ghcr.io/graalvm/native-image-community:latest \
