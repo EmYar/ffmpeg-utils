@@ -43,6 +43,7 @@ docker run --rm \
   -H:+ReportExceptionStackTraces \
   --enable-http \
   -R:MaxHeapSize=32m \
+  -Dfile.encoding=UTF-8 \
   -o "build/distributions/$BINARY_NAME" \
   -jar "$JAR_PATH"
 
