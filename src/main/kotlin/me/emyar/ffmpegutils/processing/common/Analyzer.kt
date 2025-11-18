@@ -8,18 +8,27 @@ object Analyzer {
 
     private val jsonRegex = """(?s)\{.*?"input_i".*?}""".toRegex()
 
-    fun getFileInfo(file: File): String =
-        ProcessBuilder(
+    fun getFileInfo(file: File): String {
+        val process = ProcessBuilder(
             FFPROBE_CMD,
             "-hide_banner",
+            "-analyzeduration", "10000000",
+            "-probesize", "50000000",
             file.absolutePath,
         ).redirectErrorStream(true)
             .start()
-            .also(Process::waitFor)
-            .inputStream.bufferedReader().readText()
+        return process.inputStream.reader().readText()
+            .also {
+                process.waitFor().let {
+                    if (it != 0) {
+                        throw IllegalStateException("$FFPROBE_CMD exited with code: $it")
+                    }
+                }
+            }
+    }
 
-    fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData =
-        ProcessBuilder(
+    fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData {
+        val process = ProcessBuilder(
             FFMPEG_CMD,
             "-hide_banner", "-nostats", "-v", "info",
             "-i", file.absolutePath,
@@ -28,8 +37,15 @@ object Analyzer {
             "-f", "null", "-",
         ).redirectErrorStream(true)
             .start()
-            .also(Process::waitFor)
-            .inputStream.bufferedReader().readText()
+        return process.inputStream.reader().readText()
             .let { jsonRegex.findAll(it).last().value }
             .let { Json.decodeFromString<LoudNormData>(it) }
+            .also {
+                process.waitFor().let {
+                    if (it != 0) {
+                        throw IllegalStateException("$FFMPEG_CMD exited with code: $it")
+                    }
+                }
+            }
+    }
 }

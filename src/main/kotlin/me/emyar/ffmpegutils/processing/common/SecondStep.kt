@@ -87,10 +87,10 @@ object SecondStep {
             .let { require(it == 0) { "ffmpeg exit=$it" } }
     }
 
-    private fun countExistingSubtitleStreams(input: File): Int =
-        ProcessBuilder(
+    private fun countExistingSubtitleStreams(input: File): Int {
+        val process = ProcessBuilder(
             listOf(
-                FFPROBE_CMD, "-v", "warning",
+                FFPROBE_CMD, "-v", "error",
                 "-select_streams", "s",
                 "-show_entries", "stream=index",
                 "-of", "csv=p=0",
@@ -98,9 +98,16 @@ object SecondStep {
             )
         ).redirectErrorStream(true)
             .start()
-            .also(Process::waitFor)
-            .inputStream
+        return process.inputStream
             .bufferedReader()
             .lineSequence()
             .count(String::isNotBlank)
+            .also {
+                process.waitFor().let {
+                    if (it != 0) {
+                        throw IllegalStateException("$FFPROBE_CMD exited with code: $it")
+                    }
+                }
+            }
+    }
 }
