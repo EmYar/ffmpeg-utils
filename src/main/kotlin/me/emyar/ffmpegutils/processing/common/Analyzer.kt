@@ -10,7 +10,7 @@ object Analyzer {
 
     fun getFileInfo(file: File): String {
         val process = ProcessBuilder(
-            FFPROBE_CMD,
+            "ffprobe",
             "-hide_banner",
             "-analyzeduration", "10000000",
             "-probesize", "50000000",
@@ -21,7 +21,7 @@ object Analyzer {
             .also {
                 process.waitFor().let {
                     if (it != 0) {
-                        throw IllegalStateException("$FFPROBE_CMD exited with code: $it")
+                        throw IllegalStateException("ffprobe exited with code: $it")
                     }
                 }
             }
@@ -29,7 +29,7 @@ object Analyzer {
 
     fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData {
         val process = ProcessBuilder(
-            FFMPEG_CMD,
+            "ffmpeg",
             "-hide_banner", "-nostats", "-v", "info",
             "-i", file.absolutePath,
             "-map", trackIndex,
@@ -43,7 +43,7 @@ object Analyzer {
             .also {
                 process.waitFor().let {
                     if (it != 0) {
-                        throw IllegalStateException("$FFMPEG_CMD exited with code: $it")
+                        throw IllegalStateException("ffmpeg exited with code: $it")
                     }
                 }
             }

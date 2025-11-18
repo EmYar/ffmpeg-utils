@@ -32,7 +32,7 @@ object SecondStep {
 
         // ----------------- формируем аргументы -----------------
         val args = mutableListOf(
-            FFMPEG_CMD,
+            "ffmpeg",
             "-hide_banner", "-v", "warning", "-stats",
             "-y",
             "-i", input.absolutePath, // вход №0 — исходное видео
@@ -90,7 +90,7 @@ object SecondStep {
     private fun countExistingSubtitleStreams(input: File): Int {
         val process = ProcessBuilder(
             listOf(
-                FFPROBE_CMD, "-v", "error",
+                "ffprobe", "-v", "error",
                 "-select_streams", "s",
                 "-show_entries", "stream=index",
                 "-of", "csv=p=0",
@@ -105,7 +105,7 @@ object SecondStep {
             .also {
                 process.waitFor().let {
                     if (it != 0) {
-                        throw IllegalStateException("$FFPROBE_CMD exited with code: $it")
+                        throw IllegalStateException("ffprobe exited with code: $it")
                     }
                 }
             }

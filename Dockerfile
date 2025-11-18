@@ -10,7 +10,7 @@ ENV LC_ALL=C.UTF-8
 ENV APP_VERSION=${APP_VERSION}
 ENV PLATFORM_TAG=${PLATFORM_TAG}
 
-ENV FFTOOLS_PREFIX="/usr/lib/jellyfin-ffmpeg/"
+ENV PATH="/usr/lib/jellyfin-ffmpeg:${PATH}"
 
 LABEL org.opencontainers.image.title="ffmpeg-utils" \
       org.opencontainers.image.version="${APP_VERSION}" \
