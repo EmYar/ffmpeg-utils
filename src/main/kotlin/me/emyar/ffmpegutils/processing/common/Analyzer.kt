@@ -17,14 +17,17 @@ object Analyzer {
             file.absolutePath,
         ).redirectErrorStream(true)
             .start()
-        return process.inputStream.reader().readText()
-            .also {
-                process.waitFor().let {
-                    if (it != 0) {
-                        throw IllegalStateException("ffprobe exited with code: $it")
-                    }
-                }
+        val result = process.inputStream.reader().readText()
+        process.waitFor().let {
+            if (it != 0) {
+                throw IllegalStateException(
+                    "ffprobe exited with code: $it. Output: ${
+                        process.errorStream.reader().readText()
+                    }"
+                )
             }
+        }
+        return result
     }
 
     fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData {
