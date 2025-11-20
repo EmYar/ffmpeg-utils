@@ -1,5 +1,6 @@
 package me.emyar.ffmpegutils.processing.batch
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -14,6 +15,8 @@ import me.emyar.ffmpegutils.processing.common.Analyzer
 import me.emyar.ffmpegutils.processing.common.SecondStep
 import java.io.File
 import java.nio.file.Path
+
+private val log = KotlinLogging.logger {}
 
 /**
  * @tag *AudioNormalization
@@ -54,13 +57,13 @@ private suspend fun processBatch(
         coroutineScope {
             launch(Dispatchers.IO) {
                 for (inputFile in files) {
-                    println("""Analyzing "$inputFile"...""")
+                    log.info { """Analyzing "$inputFile"...""" }
                     val outputFile = outputDir.resolve(inputFile.name).toFile()
                     val data = Analyzer.getLoudNormDataForTrack(files.first(), audioTrack)
                     val subs = subsByNameWithoutExt[inputFile.nameWithoutExtension]
                         ?.map { SubsInfoDto(it, it.parentFile.name) }
                         ?: listOf()
-                    println("""Processing "$inputFile" to "$outputFile"...""")
+                    log.info { """Processing "$inputFile" to "$outputFile"...""" }
                     SecondStep.applyFilter(inputFile, audioTrack, data, subs, outputFile)
                 }
             }

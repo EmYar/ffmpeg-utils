@@ -1,5 +1,6 @@
 package me.emyar.ffmpegutils.processing.single
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -17,6 +18,8 @@ import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.time.measureTime
+
+private val log = KotlinLogging.logger {}
 
 /**
  * Normalize audio for in one file
@@ -47,29 +50,26 @@ private suspend fun processFile(
     additionalSubs: List<SubsInfo>,
     outputPath: Path,
 ) {
-    val subs = additionalSubs.asSequence()
-        .mapNotNull { (path, lang, charset) ->
-            val file = Paths.get(path).toFile().takeIf(File::exists)
-                ?: return@mapNotNull null
-            SubsInfoDto(file, file.nameWithoutExtension, lang, charset ?: file.detectCharset())
-        }
-        .toList()
+    val subs = additionalSubs.mapNotNull { (path, lang, charset) ->
+        val file = Paths.get(path).toFile().takeIf(File::exists)
+            ?: return@mapNotNull null
+        SubsInfoDto(file, file.nameWithoutExtension, lang, charset ?: file.detectCharset())
+    }
 
     val inputFile = inputPath.toFile()
     if (!inputFile.exists()) {
-        throw IllegalStateException("File $inputPath does not exist")
+        throw IllegalArgumentException("File $inputPath does not exist")
     }
 
     mutex.withLock {
         coroutineScope {
             launch(Dispatchers.IO) {
-                println("""Analyzing "$inputFile"...""")
+                log.info { """Analyzing "$inputFile"...""" }
                 val outputFile = outputPath.toFile()
                 val data = Analyzer.getLoudNormDataForTrack(inputFile, audioTrack)
-                println("""Processing "$inputFile" to "$outputFile"...""")
+                log.info { """Processing "$inputFile" to "$outputFile"...""" }
                 SecondStep.applyFilter(inputFile, audioTrack, data, subs, outputFile)
             }
         }
     }
 }
-

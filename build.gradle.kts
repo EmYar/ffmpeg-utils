@@ -1,8 +1,9 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_24
 
 plugins {
-    val kotlinVersion = "2.2.20"
+    val kotlinVersion = "2.2.21"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
@@ -20,14 +21,11 @@ repositories {
     mavenCentral()
 }
 
-kotlin {
-    jvmToolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
-}
+kotlin.compilerOptions.jvmTarget = JVM_24
 
-val ktorVersion = "3.3.2"
 dependencies {
+    val ktorVersion = "3.3.2"
+
     implementation("io.ktor:ktor-server-cio:$ktorVersion")
 
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
@@ -38,6 +36,7 @@ dependencies {
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
 
     implementation("ch.qos.logback:logback-classic:1.5.21")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
 
     implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
 
@@ -46,6 +45,10 @@ dependencies {
 
 application {
     mainClass.set("me.emyar.ffmpegutils.MainKtorKt")
+    applicationDefaultJvmArgs += listOf(
+        "-XX:+UnlockExperimentalVMOptions",
+        "-XX:+UseCompactObjectHeaders",
+    )
 }
 
 val initializeAtBuildTime = arrayOf(
