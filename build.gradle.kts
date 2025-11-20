@@ -53,6 +53,7 @@ application {
     applicationDefaultJvmArgs += listOf(
         "-XX:+UnlockExperimentalVMOptions",
         "-XX:+UseCompactObjectHeaders",
+        "-Xmx32m",
     )
 }
 

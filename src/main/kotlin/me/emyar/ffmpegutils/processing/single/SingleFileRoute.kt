@@ -7,8 +7,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import me.emyar.ffmpegutils.Config
 import me.emyar.ffmpegutils.models.SubsInfoDto
-import me.emyar.ffmpegutils.processing.common.*
+import me.emyar.ffmpegutils.processing.common.Analyzer
+import me.emyar.ffmpegutils.processing.common.SecondStep
+import me.emyar.ffmpegutils.processing.common.detectCharset
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -27,10 +30,10 @@ fun Route.singleFileRoute(parallelismSemaphore: Semaphore): Route =
     post("/single-file") {
         val req = call.receive<SingleFileRequest>()
         val inputPath = Paths.get(req.inputFilePath.trim()).let {
-            if (it.isAbsolute) it else BASE_IN_PATH.resolve(it)
+            if (it.isAbsolute) it else Config.BASE_IN_PATH.resolve(it)
         }
         val outputPath = Paths.get(req.outputFilePath.trim()).let {
-            if (it.isAbsolute) it else BASE_OUT_PATH.resolve(it)
+            if (it.isAbsolute) it else Config.BASE_OUT_PATH.resolve(it)
         }
         val duration = measureTime {
             processFile(
