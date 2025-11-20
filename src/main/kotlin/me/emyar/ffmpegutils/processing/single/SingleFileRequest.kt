@@ -13,6 +13,7 @@ data class SingleFileRequest(
 @Serializable
 data class SubsInfo(
     val path: String,
+    val name: String? = null,
     val language: String? = null,
     val charset: String? = null,
 )

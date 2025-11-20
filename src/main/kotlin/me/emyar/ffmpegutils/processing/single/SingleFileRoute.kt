@@ -54,20 +54,29 @@ private suspend fun processFile(
     additionalSubs: List<SubsInfo>,
     outputPath: Path,
 ) {
-    val subs = additionalSubs.mapNotNull { (path, lang, charset) ->
+    val subs = additionalSubs.mapNotNull { (path, name, lang, charset) ->
         val file = Paths.get(path).toFile().takeIf(File::exists)
             ?: return@mapNotNull null
-        SubsInfoDto(file, file.nameWithoutExtension, lang, charset ?: file.detectCharset())
+        SubsInfoDto(file, name ?: file.nameWithoutExtension, lang, charset ?: file.detectCharset())
     }
 
     val inputFile = inputPath.toFile()
     if (!inputFile.exists()) {
-        throw IllegalArgumentException("File $inputPath does not exist")
+        throw IllegalArgumentException("File '$inputPath' does not exist")
     }
+    if (inputFile.isDirectory) {
+        throw IllegalArgumentException("File '$inputPath' is a directory")
+    }
+
+    outputPath.parent.toFile().let {
+        if (!it.exists() && !it.mkdirs()) {
+            throw IllegalStateException("Failed to create directory '$it'")
+        }
+    }
+    val outputFile = outputPath.toFile()
 
     parallelismSemaphore.withPermit {
         log.info { """Analyzing "$inputFile"...""" }
-        val outputFile = outputPath.toFile()
         val data = Analyzer.getLoudNormDataForTrack(inputFile, audioTrack)
         log.info { """Processing "$inputFile" to "$outputFile"...""" }
         SecondStep.applyFilter(inputFile, audioTrack, data, subs, outputFile)

@@ -46,12 +46,12 @@ fun Route.filesBatchRoute(parallelismSemaphore: Semaphore): Route =
 
 private suspend fun processBatch(
     parallelismSemaphore: Semaphore,
-    inputDir: Path,
+    inputPath: Path,
     audioTrack: String,
     subsDirs: List<Path>,
-    outputDir: Path,
+    outputPath: Path,
 ) {
-    val files = inputDir.toFile()
+    val files = inputPath.toFile()
         .listFiles { it.extension == "mkv" }!!
         .sortedBy { it.nameWithoutExtension }
 
@@ -62,8 +62,12 @@ private suspend fun processBatch(
 
     for (inputFile in files) {
         parallelismSemaphore.withPermit {
+            val outputDir = outputPath.toFile()
+            if (!outputPath.exists() && !outputDir.mkdirs()) {
+                throw IllegalStateException("Failed to create directory '$outputPath'")
+            }
             log.info { """Analyzing "$inputFile"...""" }
-            val outputFile = outputDir.resolve(inputFile.name).toFile()
+            val outputFile = outputDir.resolve(inputFile.name)
             val data = Analyzer.getLoudNormDataForTrack(files.first(), audioTrack)
             val subs = subsByNameWithoutExt[inputFile.nameWithoutExtension]
                 ?.map { SubsInfoDto(it, it.parentFile.name) }

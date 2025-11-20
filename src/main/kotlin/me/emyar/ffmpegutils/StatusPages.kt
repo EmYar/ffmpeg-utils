@@ -46,6 +46,13 @@ fun Application.configureStatusPages() {
             )
         }
 
+        exception<IllegalArgumentException> { call, cause ->
+            call.respond(
+                HttpStatusCode.BadRequest,
+                mapOf("error" to "Bad request", "details" to cause.message)
+            )
+        }
+
         // общий fallback
         exception<Throwable> { call, cause ->
             call.application.environment.log.error(
@@ -53,7 +60,7 @@ fun Application.configureStatusPages() {
             )
             call.respond(
                 HttpStatusCode.InternalServerError,
-                mapOf("error" to "Internal server error")
+                mapOf("error" to "Internal server error", "details" to cause.message)
             )
         }
     }
