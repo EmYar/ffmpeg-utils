@@ -1,12 +1,11 @@
 package me.emyar.ffmpegutils.processing.batch
 
 import kotlinx.serialization.Serializable
-import java.nio.file.Path
 
 @Serializable
 data class FilesBatchRequest(
-    val inputDir: Path,
+    val inputDir: String,
     val audioTrack: String,
-    val additionalSubsRelativeDirs: List<Path> = emptyList(),
-    val outputDir: Path,
+    val additionalSubsDirs: List<String> = emptyList(),
+    val outputDir: String,
 )

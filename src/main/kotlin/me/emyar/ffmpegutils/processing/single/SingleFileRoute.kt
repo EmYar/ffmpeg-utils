@@ -5,12 +5,10 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import me.emyar.ffmpegutils.models.SubsInfoDto
-import me.emyar.ffmpegutils.processing.common.Analyzer
-import me.emyar.ffmpegutils.processing.common.SecondStep
-import me.emyar.ffmpegutils.processing.common.detectCharset
+import me.emyar.ffmpegutils.processing.common.*
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -25,23 +23,29 @@ private val log = KotlinLogging.logger {}
  * @summary Обработка одного файла
  * @response 200 text/plain OK
  */
-fun Route.singleFileRoute(mutex: Mutex): Route =
+fun Route.singleFileRoute(parallelismSemaphore: Semaphore): Route =
     post("/single-file") {
         val req = call.receive<SingleFileRequest>()
+        val inputPath = Paths.get(req.inputFilePath.trim()).let {
+            if (it.isAbsolute) it else BASE_IN_PATH.resolve(it)
+        }
+        val outputPath = Paths.get(req.outputFilePath.trim()).let {
+            if (it.isAbsolute) it else BASE_OUT_PATH.resolve(it)
+        }
         val duration = measureTime {
             processFile(
-                mutex,
-                Paths.get(req.inputFilePath.trim()),
+                parallelismSemaphore,
+                inputPath,
                 req.audioTrack.trim(),
                 req.additionalSubs,
-                Paths.get(req.outputFilePath.trim()),
+                outputPath,
             )
         }
         call.respond(HttpStatusCode.OK, "Audio for '${req.inputFilePath}' normalized successfully. $duration")
     }
 
 private suspend fun processFile(
-    mutex: Mutex,
+    parallelismSemaphore: Semaphore,
     inputPath: Path,
     audioTrack: String,
     additionalSubs: List<SubsInfo>,
@@ -58,7 +62,7 @@ private suspend fun processFile(
         throw IllegalArgumentException("File $inputPath does not exist")
     }
 
-    mutex.withLock {
+    parallelismSemaphore.withPermit {
         log.info { """Analyzing "$inputFile"...""" }
         val outputFile = outputPath.toFile()
         val data = Analyzer.getLoudNormDataForTrack(inputFile, audioTrack)

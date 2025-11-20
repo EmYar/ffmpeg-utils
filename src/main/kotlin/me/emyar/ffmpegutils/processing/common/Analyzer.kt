@@ -30,26 +30,27 @@ object Analyzer {
             }
     }
 
-    suspend fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData = withContext(Dispatchers.IO) {
-        val process = ProcessBuilder(
-            "ffmpeg",
-            "-hide_banner", "-nostats", "-v", "info",
-            "-i", file.absolutePath,
-            "-map", trackIndex,
-            "-filter:a", "aformat=channel_layouts=stereo,loudnorm=$EBU_R128_CONFIG:print_format=json",
-            "-f", "null", "-",
-        ).redirectErrorStream(true)
-            .start()
+    suspend fun getLoudNormDataForTrack(file: File, audioTrackGlobalIndex: String): LoudNormData =
+        withContext(Dispatchers.IO) {
+            val process = ProcessBuilder(
+                "ffmpeg",
+                "-hide_banner", "-nostats", "-v", "info",
+                "-i", file.absolutePath,
+                "-map", audioTrackGlobalIndex,
+                "-filter:a", "aformat=channel_layouts=stereo,loudnorm=$EBU_R128_CONFIG:print_format=json",
+                "-f", "null", "-",
+            ).redirectErrorStream(true)
+                .start()
 
-        process.inputStream.reader().readText()
-            .let { jsonRegex.findAll(it).last().value }
-            .let { Json.decodeFromString<LoudNormData>(it) }
-            .also {
-                process.waitFor().let {
-                    if (it != 0) {
-                        throw IllegalStateException("ffmpeg exited with code: $it")
+            process.inputStream.reader().readText()
+                .let { jsonRegex.findAll(it).last().value }
+                .let { Json.decodeFromString<LoudNormData>(it) }
+                .also {
+                    process.waitFor().let {
+                        if (it != 0) {
+                            throw IllegalStateException("ffmpeg exited with code: $it")
+                        }
                     }
                 }
-            }
-    }
+        }
 }
