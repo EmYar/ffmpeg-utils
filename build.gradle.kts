@@ -58,7 +58,6 @@ application {
 }
 
 val initializeAtBuildTime = arrayOf(
-    "me.emyar.ffmpegutils",
     "kotlin",
     "kotlinx",
     "io.github.oshai.kotlinlogging",
