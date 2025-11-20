@@ -41,7 +41,7 @@ docker run --rm \
   --no-fallback \
   -O3 \
   -march=native \
-  --initialize-at-build-time=me.emyar.ffmpegutils,kotlin,kotlinx \
+  --initialize-at-build-time=me.emyar.ffmpegutils,kotlin,kotlinx,io.github.oshai.kotlinlogging,ch.qos.logback,org.slf4j,org.xml.sax.helpers \
   -H:+ReportExceptionStackTraces \
   --enable-http \
   -R:MaxHeapSize=32m \

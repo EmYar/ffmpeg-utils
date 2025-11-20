@@ -61,6 +61,10 @@ val initializeAtBuildTime = arrayOf(
     "me.emyar.ffmpegutils",
     "kotlin",
     "kotlinx",
+    "io.github.oshai.kotlinlogging",
+    "ch.qos.logback",
+    "org.slf4j",
+    "org.xml.sax.helpers",
 ).joinToString(",")
 
 graalvmNative {
@@ -71,15 +75,13 @@ graalvmNative {
             fallback.set(false)
             useFatJar.set(true)
             buildArgs.addAll(
-                listOf(
-                    "-O3",
-                    "-march=native",
-                    "--initialize-at-build-time=$initializeAtBuildTime",
-                    "-H:+ReportExceptionStackTraces",
-                    "--enable-http",
-                    "-R:MaxHeapSize=32m",
-                    "-Dfile.encoding=UTF-8"
-                )
+                "-O3",
+                "-march=native",
+                "--initialize-at-build-time=$initializeAtBuildTime",
+                "-H:+ReportExceptionStackTraces",
+                "--enable-http",
+                "-R:MaxHeapSize=32m",
+                "-Dfile.encoding=UTF-8",
             )
         }
     }
