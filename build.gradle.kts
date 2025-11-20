@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.JavaVersion.VERSION_24
 import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_24
 
@@ -21,6 +22,10 @@ repositories {
     mavenCentral()
 }
 
+java {
+    sourceCompatibility = VERSION_24
+    targetCompatibility = VERSION_24
+}
 kotlin.compilerOptions.jvmTarget = JVM_24
 
 dependencies {
