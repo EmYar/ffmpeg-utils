@@ -1,5 +1,7 @@
 package me.emyar.ffmpegutils.processing.common
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import me.emyar.ffmpegutils.models.LoudNormData
 import java.io.File
@@ -8,7 +10,7 @@ object Analyzer {
 
     private val jsonRegex = """(?s)\{.*?"input_i".*?}""".toRegex()
 
-    fun getFileInfo(file: File): String {
+    suspend fun getFileInfo(file: File): String = withContext(Dispatchers.IO) {
         val process = ProcessBuilder(
             "ffprobe",
             "-hide_banner",
@@ -17,7 +19,8 @@ object Analyzer {
             file.absolutePath,
         ).redirectErrorStream(true)
             .start()
-        return process.inputStream.reader().readText()
+
+        process.inputStream.reader().readText()
             .also {
                 process.waitFor().let {
                     if (it != 0) {
@@ -27,7 +30,7 @@ object Analyzer {
             }
     }
 
-    fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData {
+    suspend fun getLoudNormDataForTrack(file: File, trackIndex: String): LoudNormData = withContext(Dispatchers.IO) {
         val process = ProcessBuilder(
             "ffmpeg",
             "-hide_banner", "-nostats", "-v", "info",
@@ -37,7 +40,8 @@ object Analyzer {
             "-f", "null", "-",
         ).redirectErrorStream(true)
             .start()
-        return process.inputStream.reader().readText()
+
+        process.inputStream.reader().readText()
             .let { jsonRegex.findAll(it).last().value }
             .let { Json.decodeFromString<LoudNormData>(it) }
             .also {

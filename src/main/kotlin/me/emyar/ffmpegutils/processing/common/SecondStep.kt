@@ -1,12 +1,14 @@
 package me.emyar.ffmpegutils.processing.common
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import me.emyar.ffmpegutils.models.LoudNormData
 import me.emyar.ffmpegutils.models.SubsInfoDto
 import java.io.File
 
 object SecondStep {
 
-    fun applyFilter(
+    suspend fun applyFilter(
         input: File,
         audioTrackGlobalIndex: String, // TODO Data model
         data: LoudNormData,
@@ -91,14 +93,16 @@ object SecondStep {
         args += output.absolutePath
         // ------------------------------------------------------
 
-        ProcessBuilder(args)
-            .inheritIO()
-            .start()
-            .waitFor()
-            .let { require(it == 0) { "ffmpeg exit=$it" } }
+        withContext(Dispatchers.IO) {
+            ProcessBuilder(args)
+                .inheritIO()
+                .start()
+                .waitFor()
+                .let { require(it == 0) { "ffmpeg exit=$it" } }
+        }
     }
 
-    private fun countExistingSubtitleStreams(input: File): Int {
+    private suspend fun countExistingSubtitleStreams(input: File): Int = withContext(Dispatchers.IO) {
         val process = ProcessBuilder(
             "ffprobe", "-v", "error",
             "-select_streams", "s",
@@ -107,7 +111,8 @@ object SecondStep {
             input.absolutePath,
         ).redirectErrorStream(true)
             .start()
-        return process.inputStream
+
+        process.inputStream
             .bufferedReader()
             .lineSequence()
             .count(String::isNotBlank)

@@ -5,9 +5,6 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import me.emyar.ffmpegutils.models.SubsInfoDto
@@ -54,19 +51,15 @@ private suspend fun processBatch(
         .groupBy(File::nameWithoutExtension)
 
     mutex.withLock {
-        coroutineScope {
-            launch(Dispatchers.IO) {
-                for (inputFile in files) {
-                    log.info { """Analyzing "$inputFile"...""" }
-                    val outputFile = outputDir.resolve(inputFile.name).toFile()
-                    val data = Analyzer.getLoudNormDataForTrack(files.first(), audioTrack)
-                    val subs = subsByNameWithoutExt[inputFile.nameWithoutExtension]
-                        ?.map { SubsInfoDto(it, it.parentFile.name) }
-                        ?: listOf()
-                    log.info { """Processing "$inputFile" to "$outputFile"...""" }
-                    SecondStep.applyFilter(inputFile, audioTrack, data, subs, outputFile)
-                }
-            }
+        for (inputFile in files) {
+            log.info { """Analyzing "$inputFile"...""" }
+            val outputFile = outputDir.resolve(inputFile.name).toFile()
+            val data = Analyzer.getLoudNormDataForTrack(files.first(), audioTrack)
+            val subs = subsByNameWithoutExt[inputFile.nameWithoutExtension]
+                ?.map { SubsInfoDto(it, it.parentFile.name) }
+                ?: listOf()
+            log.info { """Processing "$inputFile" to "$outputFile"...""" }
+            SecondStep.applyFilter(inputFile, audioTrack, data, subs, outputFile)
         }
     }
 }

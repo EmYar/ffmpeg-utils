@@ -5,9 +5,6 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import me.emyar.ffmpegutils.models.SubsInfoDto
@@ -62,14 +59,10 @@ private suspend fun processFile(
     }
 
     mutex.withLock {
-        coroutineScope {
-            launch(Dispatchers.IO) {
-                log.info { """Analyzing "$inputFile"...""" }
-                val outputFile = outputPath.toFile()
-                val data = Analyzer.getLoudNormDataForTrack(inputFile, audioTrack)
-                log.info { """Processing "$inputFile" to "$outputFile"...""" }
-                SecondStep.applyFilter(inputFile, audioTrack, data, subs, outputFile)
-            }
-        }
+        log.info { """Analyzing "$inputFile"...""" }
+        val outputFile = outputPath.toFile()
+        val data = Analyzer.getLoudNormDataForTrack(inputFile, audioTrack)
+        log.info { """Processing "$inputFile" to "$outputFile"...""" }
+        SecondStep.applyFilter(inputFile, audioTrack, data, subs, outputFile)
     }
 }
