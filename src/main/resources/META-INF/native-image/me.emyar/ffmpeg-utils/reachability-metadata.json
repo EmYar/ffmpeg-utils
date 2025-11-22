@@ -120,9 +120,6 @@
       "type": "io.ktor.serialization.kotlinx.json.KotlinxSerializationJsonExtensionProvider"
     },
     {
-      "type": "io.ktor.server.application.ApplicationCall"
-    },
-    {
       "type": "io.ktor.server.application.PluginInstance"
     },
     {
@@ -171,37 +168,13 @@
       ]
     },
     {
-      "type": "java.lang.Class",
-      "methods": [
-        {
-          "name": "isSealed",
-          "parameterTypes": []
-        }
-      ]
-    },
-    {
       "type": "java.lang.ClassValue"
-    },
-    {
-      "type": "java.lang.IllegalArgumentException"
-    },
-    {
-      "type": "java.lang.String"
     },
     {
       "type": "java.lang.String[]"
     },
     {
       "type": "java.net.StandardSocketOptions"
-    },
-    {
-      "type": "java.util.Map"
-    },
-    {
-      "type": "kotlin.Any"
-    },
-    {
-      "type": "kotlin.IllegalArgumentException"
     },
     {
       "type": "kotlin.Long"
@@ -251,9 +224,6 @@
     },
     {
       "type": "kotlin.Unit"
-    },
-    {
-      "type": "kotlin.collections.Map"
     },
     {
       "type": "kotlin.jvm.internal.DefaultConstructorMarker"
@@ -349,7 +319,7 @@
       ]
     },
     {
-      "type": "me.emyar.ffmpegutils.processing.batch.FilesBatchRequest",
+      "type": "me.emyar.ffmpegutils.audionormaliz.batch.AudioNormalizationBatchRequest",
       "fields": [
         {
           "name": "Companion"
@@ -357,7 +327,7 @@
       ]
     },
     {
-      "type": "me.emyar.ffmpegutils.processing.batch.FilesBatchRequest$Companion",
+      "type": "me.emyar.ffmpegutils.audionormaliz.batch.AudioNormalizationBatchRequest$Companion",
       "methods": [
         {
           "name": "serializer",
@@ -366,7 +336,7 @@
       ]
     },
     {
-      "type": "me.emyar.ffmpegutils.processing.single.SingleFileRequest",
+      "type": "me.emyar.ffmpegutils.audionormaliz.single.AudioNormalizationRequestSingle",
       "fields": [
         {
           "name": "Companion"
@@ -374,7 +344,7 @@
       ]
     },
     {
-      "type": "me.emyar.ffmpegutils.processing.single.SingleFileRequest$Companion",
+      "type": "me.emyar.ffmpegutils.audionormaliz.single.AudioNormalizationRequestSingle$Companion",
       "methods": [
         {
           "name": "serializer",
@@ -484,9 +454,6 @@
     },
     {
       "glob": "META-INF/services/org.slf4j.spi.SLF4JServiceProvider"
-    },
-    {
-      "glob": "kotlin/collections/collections.kotlin_builtins"
     },
     {
       "glob": "kotlin/kotlin.kotlin_builtins"

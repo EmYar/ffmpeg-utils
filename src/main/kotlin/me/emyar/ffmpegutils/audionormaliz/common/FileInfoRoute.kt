@@ -1,4 +1,4 @@
-package me.emyar.ffmpegutils.processing.common
+package me.emyar.ffmpegutils.audionormaliz.common
 
 import io.ktor.http.*
 import io.ktor.server.response.*

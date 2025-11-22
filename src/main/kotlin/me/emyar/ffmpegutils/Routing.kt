@@ -3,9 +3,9 @@ package me.emyar.ffmpegutils
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.sync.Semaphore
-import me.emyar.ffmpegutils.processing.batch.filesBatchRoute
-import me.emyar.ffmpegutils.processing.common.fileInfo
-import me.emyar.ffmpegutils.processing.single.singleFileRoute
+import me.emyar.ffmpegutils.audionormaliz.batch.filesBatchRoute
+import me.emyar.ffmpegutils.audionormaliz.common.fileInfo
+import me.emyar.ffmpegutils.audionormaliz.single.singleFileRoute
 
 private val parallelismSemaphore = Semaphore(Config.PARALLELISM)
 

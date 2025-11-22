@@ -1,4 +1,4 @@
-package me.emyar.ffmpegutils.processing.common
+package me.emyar.ffmpegutils.audionormaliz.common
 
 import org.mozilla.universalchardet.UniversalDetector
 import java.io.File

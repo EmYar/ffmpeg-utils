@@ -1,8 +1,9 @@
-package me.emyar.ffmpegutils.processing.common
+package me.emyar.ffmpegutils.audionormaliz.common
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import me.emyar.ffmpegutils.models.AudioTrackGlobalIndex
 import me.emyar.ffmpegutils.models.LoudNormData
 import java.io.File
 
@@ -23,26 +24,24 @@ object Analyzer {
         process.inputStream.reader().readText()
             .also {
                 process.waitFor().let {
-                    if (it != 0) {
-                        throw IllegalStateException("ffprobe exited with code: $it")
-                    }
+                    if (it != 0) throw IllegalStateException("ffprobe exited with code: $it")
                 }
             }
     }
 
-    suspend fun getLoudNormDataForTrack(file: File, audioTrackGlobalIndex: String): LoudNormData =
+    suspend fun getLoudNormDataForTrack(file: File, audioIndex: AudioTrackGlobalIndex): LoudNormData =
         withContext(Dispatchers.IO) {
             val process = ProcessBuilder(
                 "ffmpeg",
                 "-hide_banner", "-nostats", "-v", "info",
                 "-i", file.absolutePath,
-                "-map", audioTrackGlobalIndex,
+                "-map", audioIndex.toString(),
                 "-filter:a", "aformat=channel_layouts=stereo,loudnorm=$EBU_R128_CONFIG:print_format=json",
                 "-f", "null", "-",
             ).redirectErrorStream(true)
                 .start()
 
-            process.inputStream.reader().readText()
+            process.inputStream.bufferedReader().readText()
                 .let { jsonRegex.findAll(it).last().value }
                 .let { Json.decodeFromString<LoudNormData>(it) }
                 .also {

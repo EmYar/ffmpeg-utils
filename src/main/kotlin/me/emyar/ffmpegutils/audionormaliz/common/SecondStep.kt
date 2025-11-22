@@ -1,25 +1,22 @@
-package me.emyar.ffmpegutils.processing.common
+package me.emyar.ffmpegutils.audionormaliz.common
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import me.emyar.ffmpegutils.models.AudioTrackGlobalIndex
 import me.emyar.ffmpegutils.models.LoudNormData
-import me.emyar.ffmpegutils.models.SubsInfoDto
+import me.emyar.ffmpegutils.models.SubtitlesDto
 import java.io.File
 
 object SecondStep {
 
     suspend fun applyFilter(
         input: File,
-        audioTrackGlobalIndex: String, // TODO Data model
+        audioIndex: AudioTrackGlobalIndex,
         data: LoudNormData,
-        subtitles: Collection<SubsInfoDto>,
+        subtitles: Collection<SubtitlesDto>,
         output: File,
     ) {
-        val parts = audioTrackGlobalIndex.split(':')
-        require(parts.size == 2) { "audioTrackGlobalIndex must be 'inputIndex:streamIndex', e.g. '0:2'" }
-        val inputIndex = parts[0]
-        val streamIndex = parts[1]
-        val audioMetadataSource = "$inputIndex:s:$streamIndex"
+        val audioMetadataSource = "${audioIndex.input}:s:${audioIndex.stream}"
 
         val loudnormFilter = arrayOf(
             EBU_R128_CONFIG,
@@ -38,6 +35,7 @@ object SecondStep {
         val args = mutableListOf(
             "ffmpeg",
             "-hide_banner", "-v", "warning", "-stats",
+            "-probesize", "10M",
             "-y",
             "-i", input.absolutePath, // вход №0 — исходное видео
         )
@@ -66,7 +64,7 @@ object SecondStep {
 
         // Аудио — только выбранный трек, с применением loudnorm и перекодированием в FLAC стерео
         args += arrayOf(
-            "-map", audioTrackGlobalIndex,
+            "-map", audioIndex.toString(),
             "-ac", "2",
             "-ar", "48000",
             "-sample_fmt", "s16",
@@ -95,7 +93,6 @@ object SecondStep {
 
         withContext(Dispatchers.IO) {
             ProcessBuilder(args)
-                .inheritIO()
                 .start()
                 .waitFor()
                 .let { require(it == 0) { "ffmpeg exit=$it" } }
