@@ -1,0 +1,12 @@
+{
+  "resources": {
+    "includes": [
+      {
+        "pattern": "openapi/.*\\.json"
+      },
+      {
+        "pattern": "logback.*\\.xml"
+      }
+    ]
+  }
+}
