@@ -32,10 +32,11 @@ dependencies {
     val ktorVersion = "3.3.2"
 
     implementation("io.ktor:ktor-server-cio:$ktorVersion")
-
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-server-config-yaml:$ktorVersion")
+    implementation("io.ktor:ktor-server-di:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:${ktorVersion}")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
+    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-request-validation:$ktorVersion")
 
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
