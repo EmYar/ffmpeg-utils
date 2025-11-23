@@ -1,16 +1,20 @@
 ktor:
   deployment:
-    port: 8080
+    port: $PORT:8080
   application:
     modules:
       - me.emyar.ffmpegutils.MainKtorKt.module
     dependencies:
       - me.emyar.ffmpegutils.LimitersKt.processingParallelismLimiter
-      - me.emyar.ffmpegutils.audio.AudioNormalizationService
-      - me.emyar.ffmpegutils.audio.SingleFileAudioNormalizationService
+      - me.emyar.ffmpegutils.services.FileCharsetDetectorService
+      - me.emyar.ffmpegutils.services.PathsAbsoluterService
+      - me.emyar.ffmpegutils.services.StreamsInfoService
+      - me.emyar.ffmpegutils.services.audio.AudioNormalizationService
+      - me.emyar.ffmpegutils.services.audio.SingleFileAudioNormalizationService
+      - me.emyar.ffmpegutils.services.audio.BatchFilesAudioNormalizationService
     config:
       limits:
-        processingParallelism: 1
-      defaultInPath: null
-      defaultOutPath: null
-      ebuR128Config: I=-23:TP=-2:LRA=7
+        processingParallelism: $PARALLELISM:1
+      defaultInPath: ${?DEFAULT_IN_PATH}
+      defaultOutPath: ${?DEFAULT_OUT_PATH}
+      ebuR128Config: $EBU_R128_CONFIG:I=-23:TP=-2:LRA=7

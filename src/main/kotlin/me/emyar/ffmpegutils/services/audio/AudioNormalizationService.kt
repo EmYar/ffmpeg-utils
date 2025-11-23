@@ -1,13 +1,12 @@
-package me.emyar.ffmpegutils.audio
+package me.emyar.ffmpegutils.services.audio
 
 import io.ktor.server.plugins.di.annotations.*
 import kotlinx.serialization.json.Json
-import me.emyar.ffmpegutils.audionormaliz.common.EBU_R128_CONFIG
-import me.emyar.ffmpegutils.audionormaliz.common.guessSubsCodecByFileExtension
-import me.emyar.ffmpegutils.commands.runProcess
 import me.emyar.ffmpegutils.models.AudioTrackGlobalIndex
 import me.emyar.ffmpegutils.models.LoudNormData
 import me.emyar.ffmpegutils.models.SubtitlesDto
+import me.emyar.ffmpegutils.services.runProcess
+import me.emyar.ffmpegutils.utils.guessSubsCodecByFileExtension
 import java.io.File
 
 private val loudnormJsonRegex = """(?s)\{.*?"input_i".*?}""".toRegex()
@@ -71,7 +70,7 @@ class AudioNormalizationService(
         val audioMetadataSource = "${audioIndex.input}:s:${audioIndex.stream}"
 
         val loudnormFilter = arrayOf(
-            EBU_R128_CONFIG,
+            ebuR128Config,
             "measured_I=${loudNormData.inputI}",
             "measured_TP=${loudNormData.inputTp}",
             "measured_LRA=${loudNormData.inputLra}",

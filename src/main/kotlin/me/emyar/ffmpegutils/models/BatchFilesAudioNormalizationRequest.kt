@@ -1,9 +1,9 @@
-package me.emyar.ffmpegutils.audionormaliz.batch
+package me.emyar.ffmpegutils.models
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AudioNormalizationBatchRequest(
+data class BatchFilesAudioNormalizationRequest(
     val inputDir: String,
     val audioTrackGlobalIndex: String,
     val additionalSubsDirs: List<SubtitlesDirInfo> = emptyList(),

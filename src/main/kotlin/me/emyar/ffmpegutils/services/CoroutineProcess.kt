@@ -1,4 +1,4 @@
-package me.emyar.ffmpegutils.commands
+package me.emyar.ffmpegutils.services
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -7,13 +7,13 @@ suspend fun runProcess(vararg command: String): ProcessResult = withContext(Disp
     val process = ProcessBuilder(*command)
         .redirectErrorStream(true)
         .start()
-    val stdout = process.inputStream.bufferedReader().readText()
+    val output = process.inputStream.readBytes().decodeToString()
     val exitCode = process.waitFor()
 
-    ProcessResult(stdout, exitCode)
+    ProcessResult(output, exitCode)
 }
 
 data class ProcessResult(
-    val stdout: String,
+    val output: String,
     val exitCode: Int,
 )
