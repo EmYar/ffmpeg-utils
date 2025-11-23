@@ -1,9 +1,9 @@
-package me.emyar.ffmpegutils.audionormaliz.single
+package me.emyar.ffmpegutils.models
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AudioNormalizationRequestSingle(
+data class SingleFileAudioNormalizationRequest(
     val inputFilePath: String,
     val audioTrackGlobalIndex: String,
     val additionalSubs: List<SubsInfo> = emptyList(),

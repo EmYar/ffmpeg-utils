@@ -2,12 +2,8 @@ package me.emyar.ffmpegutils
 
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
-import io.ktor.server.engine.*
 
-fun main() {
-    embeddedServer(CIO, port = 8080, module = Application::module)
-        .start(wait = true)
-}
+fun main(args: Array<String>): Unit = EngineMain.main(args)
 
 fun Application.module() {
     configureContentNegotiation()
