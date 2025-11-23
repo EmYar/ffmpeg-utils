@@ -6,6 +6,9 @@
       },
       {
         "pattern": "logback.*\\.xml"
+      },
+      {
+        "pattern": "application.*\\.conf"
       }
     ]
   }

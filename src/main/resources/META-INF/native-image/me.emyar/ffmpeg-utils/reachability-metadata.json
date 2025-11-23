@@ -79,6 +79,9 @@
       ]
     },
     {
+      "type": "int"
+    },
+    {
       "type": "io.ktor.http.HttpStatusCode"
     },
     {
@@ -120,13 +123,49 @@
       "type": "io.ktor.serialization.kotlinx.json.KotlinxSerializationJsonExtensionProvider"
     },
     {
+      "type": "io.ktor.server.application.Application"
+    },
+    {
+      "type": "io.ktor.server.application.ApplicationCall"
+    },
+    {
+      "type": "io.ktor.server.application.ApplicationEnvironment"
+    },
+    {
       "type": "io.ktor.server.application.PluginInstance"
+    },
+    {
+      "type": "io.ktor.server.config.ApplicationConfig"
     },
     {
       "type": "io.ktor.server.engine.BaseApplicationResponse"
     },
     {
       "type": "io.ktor.server.plugins.MutableOriginConnectionPoint"
+    },
+    {
+      "type": "io.ktor.server.plugins.di.DependencyInitializer$Explicit"
+    },
+    {
+      "type": "io.ktor.server.plugins.di.DependencyMap"
+    },
+    {
+      "type": "io.ktor.server.plugins.di.DependencyRegistry"
+    },
+    {
+      "type": "io.ktor.server.plugins.di.DependencyResolver"
+    },
+    {
+      "type": "io.ktor.server.plugins.di.PluginModuleParametersInjector"
+    },
+    {
+      "type": "io.ktor.server.plugins.di.annotations.Property",
+      "methods": [
+        {
+          "name": "value",
+          "parameterTypes": []
+        }
+      ]
     },
     {
       "type": "io.ktor.server.request.DoubleReceivePreventionToken"
@@ -171,10 +210,37 @@
       "type": "java.lang.ClassValue"
     },
     {
+      "type": "java.lang.Integer"
+    },
+    {
+      "type": "java.lang.Object"
+    },
+    {
+      "type": "java.lang.String"
+    },
+    {
       "type": "java.lang.String[]"
     },
     {
+      "type": "java.lang.Throwable"
+    },
+    {
+      "type": "java.lang.annotation.Repeatable"
+    },
+    {
       "type": "java.net.StandardSocketOptions"
+    },
+    {
+      "type": "java.util.Map"
+    },
+    {
+      "type": "kotlin.Any"
+    },
+    {
+      "type": "kotlin.Array"
+    },
+    {
+      "type": "kotlin.Int"
     },
     {
       "type": "kotlin.Long"
@@ -223,7 +289,13 @@
       "type": "kotlin.String"
     },
     {
+      "type": "kotlin.Throwable"
+    },
+    {
       "type": "kotlin.Unit"
+    },
+    {
+      "type": "kotlin.collections.Map"
     },
     {
       "type": "kotlin.jvm.internal.DefaultConstructorMarker"
@@ -238,6 +310,9 @@
       ]
     },
     {
+      "type": "kotlin.reflect.jvm.internal.impl.km.jvm.internal.JvmMetadataExtensions"
+    },
+    {
       "type": "kotlin.reflect.jvm.internal.impl.load.java.ErasedOverridabilityCondition"
     },
     {
@@ -245,6 +320,44 @@
     },
     {
       "type": "kotlin.reflect.jvm.internal.impl.load.java.JavaIncompatibilityRulesOverridabilityCondition"
+    },
+    {
+      "type": "kotlin.reflect.jvm.internal.impl.resolve.scopes.DescriptorKindFilter",
+      "fields": [
+        {
+          "name": "ALL"
+        },
+        {
+          "name": "CALLABLES"
+        },
+        {
+          "name": "CLASSIFIERS"
+        },
+        {
+          "name": "Companion"
+        },
+        {
+          "name": "FUNCTIONS"
+        },
+        {
+          "name": "NON_SINGLETON_CLASSIFIERS"
+        },
+        {
+          "name": "PACKAGES"
+        },
+        {
+          "name": "SINGLETON_CLASSIFIERS"
+        },
+        {
+          "name": "TYPE_ALIASES"
+        },
+        {
+          "name": "VALUES"
+        },
+        {
+          "name": "VARIABLES"
+        }
+      ]
     },
     {
       "type": "kotlinx.coroutines.CancellableContinuationImpl"
@@ -304,6 +417,9 @@
       "type": "kotlinx.coroutines.scheduling.WorkQueue"
     },
     {
+      "type": "kotlinx.coroutines.sync.Semaphore"
+    },
+    {
       "type": "kotlinx.coroutines.sync.SemaphoreAndMutexImpl"
     },
     {
@@ -315,11 +431,17 @@
           "parameterTypes": [
             "java.lang.String[]"
           ]
+        },
+        {
+          "name": "module",
+          "parameterTypes": [
+            "io.ktor.server.application.Application"
+          ]
         }
       ]
     },
     {
-      "type": "me.emyar.ffmpegutils.audionormaliz.batch.AudioNormalizationBatchRequest",
+      "type": "me.emyar.ffmpegutils.models.BatchFilesAudioNormalizationRequest",
       "fields": [
         {
           "name": "Companion"
@@ -327,7 +449,7 @@
       ]
     },
     {
-      "type": "me.emyar.ffmpegutils.audionormaliz.batch.AudioNormalizationBatchRequest$Companion",
+      "type": "me.emyar.ffmpegutils.models.BatchFilesAudioNormalizationRequest$Companion",
       "methods": [
         {
           "name": "serializer",
@@ -336,7 +458,7 @@
       ]
     },
     {
-      "type": "me.emyar.ffmpegutils.audionormaliz.single.AudioNormalizationRequestSingle",
+      "type": "me.emyar.ffmpegutils.models.SingleFileAudioNormalizationRequest",
       "fields": [
         {
           "name": "Companion"
@@ -344,11 +466,118 @@
       ]
     },
     {
-      "type": "me.emyar.ffmpegutils.audionormaliz.single.AudioNormalizationRequestSingle$Companion",
+      "type": "me.emyar.ffmpegutils.models.SingleFileAudioNormalizationRequest$Companion",
       "methods": [
         {
           "name": "serializer",
           "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.CoroutineProcessService",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "me.emyar.ffmpegutils.services.KillerService"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.FileCharsetDetectorService",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.KillerService",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.LimitersKt",
+      "methods": [
+        {
+          "name": "processingParallelismLimiter",
+          "parameterTypes": [
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.LimitersKt.processingParallelismLimiter"
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.PathsAbsoluterService",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.StreamsInfoService",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "me.emyar.ffmpegutils.services.PathsAbsoluterService",
+            "me.emyar.ffmpegutils.services.CoroutineProcessService"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.audio.AudioNormalizationService",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "me.emyar.ffmpegutils.services.CoroutineProcessService"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.audio.BatchFilesAudioNormalizationService",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "kotlinx.coroutines.sync.Semaphore",
+            "me.emyar.ffmpegutils.services.PathsAbsoluterService",
+            "me.emyar.ffmpegutils.services.FileCharsetDetectorService",
+            "me.emyar.ffmpegutils.services.audio.AudioNormalizationService"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "me.emyar.ffmpegutils.services.audio.SingleFileAudioNormalizationService",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "kotlinx.coroutines.sync.Semaphore",
+            "me.emyar.ffmpegutils.services.PathsAbsoluterService",
+            "me.emyar.ffmpegutils.services.FileCharsetDetectorService",
+            "me.emyar.ffmpegutils.services.audio.AudioNormalizationService"
+          ]
         }
       ]
     },
@@ -438,6 +667,15 @@
       "glob": "META-INF/services/io.ktor.serialization.kotlinx.KotlinxSerializationExtensionProvider"
     },
     {
+      "glob": "META-INF/services/io.ktor.server.application.ModuleParametersInjector"
+    },
+    {
+      "glob": "META-INF/services/io.ktor.server.config.ConfigLoader"
+    },
+    {
+      "glob": "META-INF/services/io.ktor.server.plugins.di.DependencyMapExtension"
+    },
+    {
       "glob": "META-INF/services/java.nio.channels.spi.SelectorProvider"
     },
     {
@@ -447,6 +685,9 @@
       "glob": "META-INF/services/javax.xml.parsers.SAXParserFactory"
     },
     {
+      "glob": "META-INF/services/kotlin.reflect.jvm.internal.impl.km.internal.extensions.MetadataExtensions"
+    },
+    {
       "glob": "META-INF/services/kotlin.reflect.jvm.internal.impl.resolve.ExternalOverridabilityCondition"
     },
     {
@@ -454,6 +695,9 @@
     },
     {
       "glob": "META-INF/services/org.slf4j.spi.SLF4JServiceProvider"
+    },
+    {
+      "glob": "kotlin/collections/collections.kotlin_builtins"
     },
     {
       "glob": "kotlin/kotlin.kotlin_builtins"

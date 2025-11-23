@@ -32,7 +32,6 @@ dependencies {
     val ktorVersion = "3.3.2"
 
     implementation("io.ktor:ktor-server-cio:$ktorVersion")
-    implementation("io.ktor:ktor-server-config-yaml:$ktorVersion")
     implementation("io.ktor:ktor-server-di:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:${ktorVersion}")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
@@ -78,11 +77,12 @@ graalvmNative {
                 "-O3",
                 "-march=native",
                 "--initialize-at-build-time=$initializeAtBuildTime",
+                "-H:+UnlockExperimentalVMOptions",
                 "-H:+ReportExceptionStackTraces",
+                "-H:+InstallExitHandlers",
                 "--enable-http",
                 "-R:MaxHeapSize=32m",
                 "-Dfile.encoding=UTF-8",
-                "-H:+InstallExitHandlers",
             )
         }
     }

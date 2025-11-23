@@ -3,14 +3,11 @@ package me.emyar.ffmpegutils.services
 import java.nio.file.Path
 
 class StreamsInfoService(
+    private val pathsAbsoluter: PathsAbsoluterService,
     private val coroutineProcessService: CoroutineProcessService,
 ) {
     suspend fun getFileStreamsInfo(path: Path): String {
-        val file = path.toFile()
-        when {
-            !file.exists() -> throw IllegalArgumentException("File '$path' does not exist")
-            file.isDirectory -> throw IllegalArgumentException("'$path' is a directory")
-        }
+        val file = pathsAbsoluter.absoluteIn(path).toFile()
         val (stdOut, exitCode) = coroutineProcessService.runProcess(
             "ffprobe",
             "-hide_banner",

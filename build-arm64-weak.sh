@@ -42,11 +42,12 @@ docker run --rm \
   -O3 \
   -march=native \
   --initialize-at-build-time=kotlin,kotlinx,io.github.oshai.kotlinlogging,ch.qos.logback,org.slf4j,org.xml.sax.helpers \
+  -H:+UnlockExperimentalVMOptions \
   -H:+ReportExceptionStackTraces \
+  -H:+InstallExitHandlers \
   --enable-http \
   -R:MaxHeapSize=32m \
   -Dfile.encoding=UTF-8 \
-  -H:+InstallExitHandlers \
   -o "build/distributions/$BINARY_NAME" \
   -jar "$JAR_PATH"
 
