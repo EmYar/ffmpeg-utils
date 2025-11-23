@@ -82,6 +82,7 @@ graalvmNative {
                 "--enable-http",
                 "-R:MaxHeapSize=32m",
                 "-Dfile.encoding=UTF-8",
+                "-H:+InstallExitHandlers",
             )
         }
     }

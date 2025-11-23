@@ -1,4 +1,4 @@
-package me.emyar.ffmpegutils
+package me.emyar.ffmpegutils.services
 
 import io.ktor.server.plugins.di.annotations.*
 import kotlinx.coroutines.sync.Semaphore

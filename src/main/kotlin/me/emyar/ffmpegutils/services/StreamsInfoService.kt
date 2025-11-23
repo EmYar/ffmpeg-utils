@@ -2,14 +2,16 @@ package me.emyar.ffmpegutils.services
 
 import java.nio.file.Path
 
-class StreamsInfoService {
+class StreamsInfoService(
+    private val coroutineProcessService: CoroutineProcessService,
+) {
     suspend fun getFileStreamsInfo(path: Path): String {
         val file = path.toFile()
         when {
             !file.exists() -> throw IllegalArgumentException("File '$path' does not exist")
             file.isDirectory -> throw IllegalArgumentException("'$path' is a directory")
         }
-        val (stdOut, exitCode) = runProcess(
+        val (stdOut, exitCode) = coroutineProcessService.runProcess(
             "ffprobe",
             "-hide_banner",
             "-analyzeduration", "10000000",

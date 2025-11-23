@@ -1,18 +1,22 @@
 package me.emyar.ffmpegutils.services.audio
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.plugins.di.annotations.*
 import kotlinx.serialization.json.Json
 import me.emyar.ffmpegutils.models.AudioTrackGlobalIndex
 import me.emyar.ffmpegutils.models.LoudNormData
 import me.emyar.ffmpegutils.models.SubtitlesDto
-import me.emyar.ffmpegutils.services.runProcess
+import me.emyar.ffmpegutils.services.CoroutineProcessService
 import me.emyar.ffmpegutils.utils.guessSubsCodecByFileExtension
 import java.io.File
 
-private val loudnormJsonRegex = """(?s)\{.*?"input_i".*?}""".toRegex()
+private val log = KotlinLogging.logger {}
+
+private val loudNormJsonRegex = """(?s)\{.*?"input_i".*?}""".toRegex()
 
 class AudioNormalizationService(
     @Property("ktor.application.config.ebuR128Config") private val ebuR128Config: String,
+    private val coroutineProcessService: CoroutineProcessService,
 ) {
 
     suspend fun process(
@@ -21,7 +25,9 @@ class AudioNormalizationService(
         subtitles: Collection<SubtitlesDto>,
         outputFile: File,
     ): String {
+        log.debug { "Measuring audio in '$inputFile'" }
         val loudNormData = getLoudNormData(inputFile, audioIndex)
+        log.debug { "Counting subtitles in '$inputFile'" }
         val existingSubsCount = countExistingSubsStreams(inputFile)
         val args = generateLoudNormApplyArgs(
             inputFile,
@@ -31,7 +37,8 @@ class AudioNormalizationService(
             subtitles,
             outputFile,
         )
-        val (stdOut, exitCode) = runProcess(*args)
+        log.debug { "Normalizing audio from '$inputFile' to '$outputFile'" }
+        val (stdOut, exitCode) = coroutineProcessService.runProcess(*args)
         if (exitCode != 0) {
             throw IllegalStateException(
                 "Error running audio normalization process. FFmpeg exited with code: $exitCode. Output: $stdOut"
@@ -44,7 +51,7 @@ class AudioNormalizationService(
         file: File,
         audioIndex: AudioTrackGlobalIndex,
     ): LoudNormData {
-        val (stdOut, exitCode) = runProcess(
+        val (stdOut, exitCode) = coroutineProcessService.runProcess(
             "ffmpeg",
             "-hide_banner", "-nostats", "-v", "info",
             "-i", file.absolutePath,
@@ -55,7 +62,7 @@ class AudioNormalizationService(
         if (exitCode != 0) {
             throw IllegalStateException("ffmpeg exited with code: $exitCode. Output:\n$stdOut")
         }
-        return loudnormJsonRegex.findAll(stdOut).last().value
+        return loudNormJsonRegex.findAll(stdOut).last().value
             .let { Json.decodeFromString<LoudNormData>(it) }
     }
 
@@ -143,7 +150,7 @@ class AudioNormalizationService(
     }
 
     private suspend fun countExistingSubsStreams(file: File): Int {
-        val (stdOut, exitCode) = runProcess(
+        val (stdOut, exitCode) = coroutineProcessService.runProcess(
             "ffprobe", "-v", "error",
             "-select_streams", "s",
             "-show_entries", "stream=index",

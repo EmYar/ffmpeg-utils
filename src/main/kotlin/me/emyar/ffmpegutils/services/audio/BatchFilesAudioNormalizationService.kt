@@ -45,8 +45,8 @@ class BatchFilesAudioNormalizationService(
 
         coroutineScope {
             for (inputFile in files) {
-                limiter.withPermit {
-                    launch {
+                launch {
+                    limiter.withPermit {
                         val outputFile = outputDir.resolve(inputFile.name)
                         val subs = subsByNameWithoutExt[inputFile.nameWithoutExtension] ?: listOf()
                         audioNormalizer.process(inputFile, audioIndex, subs, outputFile)

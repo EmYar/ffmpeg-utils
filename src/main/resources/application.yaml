@@ -5,13 +5,15 @@ ktor:
     modules:
       - me.emyar.ffmpegutils.MainKtorKt.module
     dependencies:
-      - me.emyar.ffmpegutils.LimitersKt.processingParallelismLimiter
+      - me.emyar.ffmpegutils.services.LimitersKt.processingParallelismLimiter
+      - me.emyar.ffmpegutils.services.CoroutineProcessService
       - me.emyar.ffmpegutils.services.FileCharsetDetectorService
       - me.emyar.ffmpegutils.services.PathsAbsoluterService
       - me.emyar.ffmpegutils.services.StreamsInfoService
       - me.emyar.ffmpegutils.services.audio.AudioNormalizationService
       - me.emyar.ffmpegutils.services.audio.SingleFileAudioNormalizationService
       - me.emyar.ffmpegutils.services.audio.BatchFilesAudioNormalizationService
+      - me.emyar.ffmpegutils.services.KillerService
     config:
       limits:
         processingParallelism: $PARALLELISM:1
