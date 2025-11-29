@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import me.emyar.ffmpegutils.models.AudioTrackGlobalIndex
 import me.emyar.ffmpegutils.models.BatchFilesAudioNormalizationRequest
 import me.emyar.ffmpegutils.models.BatchFilesAudioNormalizationRequest.SubtitlesDirInfo
@@ -45,11 +44,14 @@ class BatchFilesAudioNormalizationService(
 
         coroutineScope {
             for (inputFile in files) {
+                limiter.acquire()
                 launch {
-                    limiter.withPermit {
+                    try {
                         val outputFile = outputDir.resolve(inputFile.name)
                         val subs = subsByNameWithoutExt[inputFile.nameWithoutExtension] ?: listOf()
                         audioNormalizer.process(inputFile, audioIndex, subs, outputFile)
+                    } finally {
+                        limiter.release()
                     }
                 }
             }

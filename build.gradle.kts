@@ -4,19 +4,15 @@ import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_24
 
 plugins {
-    val kotlinVersion = "2.2.21"
-    kotlin("jvm") version kotlinVersion
-    kotlin("plugin.serialization") version kotlinVersion
-
-    id("io.ktor.plugin") version "3.3.2"
-
-    id("com.gradleup.shadow") version "9.2.2"
-
-    id("org.graalvm.buildtools.native") version "0.11.3"
+    kotlin("jvm") version libs.versions.kotlin
+    kotlin("plugin.serialization") version libs.versions.kotlin
+    id("io.ktor.plugin") version libs.versions.ktor
+    id("com.gradleup.shadow") version libs.versions.shadow
+    id("org.graalvm.buildtools.native") version libs.versions.graalvmBuildtoolsNative
 }
 
 group = "me.emyar"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
     mavenCentral()
@@ -29,21 +25,20 @@ java {
 kotlin.compilerOptions.jvmTarget = JVM_24
 
 dependencies {
-    val ktorVersion = "3.3.2"
+    val ktorVersion = libs.versions.ktor.get()
 
     implementation("io.ktor:ktor-server-cio:$ktorVersion")
     implementation("io.ktor:ktor-server-di:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:${ktorVersion}")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-request-validation:$ktorVersion")
-
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
 
-    implementation("ch.qos.logback:logback-classic:1.5.21")
-    implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
+    implementation("ch.qos.logback:logback-classic:${libs.versions.logback.get()}")
+    implementation("io.github.oshai:kotlin-logging-jvm:${libs.versions.kotlinLogging.get()}")
 
-    implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
+    implementation("com.googlecode.juniversalchardet:juniversalchardet:${libs.versions.juniversalchardet.get()}")
 
     testImplementation(kotlin("test"))
 }
@@ -57,18 +52,18 @@ application {
     )
 }
 
-val initializeAtBuildTime = arrayOf(
-    "kotlin",
-    "kotlinx",
-    "io.github.oshai.kotlinlogging",
-    "ch.qos.logback",
-    "org.slf4j",
-    "org.xml.sax.helpers",
-).joinToString(",")
-
 graalvmNative {
     binaries {
         named("main") {
+            val initializeAtBuildTime = arrayOf(
+                "kotlin",
+                "kotlinx",
+                "io.github.oshai.kotlinlogging",
+                "ch.qos.logback",
+                "org.slf4j",
+                "org.xml.sax.helpers",
+            ).joinToString(",")
+
             imageName.set(project.name)
             mainClass.set(application.mainClass.get())
             fallback.set(false)
