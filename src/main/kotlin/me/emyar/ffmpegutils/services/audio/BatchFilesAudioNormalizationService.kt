@@ -15,17 +15,22 @@ import java.nio.file.Paths
 
 private val log = KotlinLogging.logger {}
 
-private const val INVALID_AUDIO_TRACK_GLOBAL_INDEX_MSG =
-    "audioTrackGlobalIndex must be 'inputIndex:streamIndex', e.g. '0:2'"
-
 class BatchFilesAudioNormalizationService(
     private val limiter: Semaphore,
     private val pathsAbsoluter: PathsAbsoluterService,
     private val charsetDetector: FileCharsetDetectorService,
     private val audioNormalizer: AudioNormalizationService,
 ) {
+    companion object {
+        private const val INVALID_AUDIO_TRACK_GLOBAL_INDEX_MSG =
+            "audioTrackGlobalIndex must be 'inputIndex:streamIndex', e.g. '0:2'"
+
+        private val SUPPORTED_EXTENSIONS_UPPER = setOf("MKV", "AVI")
+    }
+
     suspend fun process(request: BatchFilesAudioNormalizationRequest) {
         val inputDir = request.inputDir.parseValidateConvertInput()
+        val fixVideoTimestamps = request.fixVideoTimestamps
         val audioIndex = request.audioTrackGlobalIndex.parseValidateConvertAudioIndex()
         val subsByNameWithoutExt = request.additionalSubsDirs.parseValidateConvertSubs()
             .groupBy { (file, _) -> file.nameWithoutExtension }
@@ -35,7 +40,7 @@ class BatchFilesAudioNormalizationService(
             throw IllegalStateException("Failed to create directory $outputDir")
         }
 
-        val files = inputDir.listFiles { it.extension == "mkv" }
+        val files = inputDir.listFiles { it.extension.uppercase() in SUPPORTED_EXTENSIONS_UPPER }
             ?.sortedBy { it.nameWithoutExtension }
             ?: throw IllegalStateException("Failed to get files in '$inputDir' directory")
         if (files.isEmpty()) {
@@ -47,9 +52,9 @@ class BatchFilesAudioNormalizationService(
                 limiter.acquire()
                 launch {
                     try {
-                        val outputFile = outputDir.resolve(inputFile.name)
+                        val outputFile = outputDir.resolve("${inputFile.nameWithoutExtension}.mkv")
                         val subs = subsByNameWithoutExt[inputFile.nameWithoutExtension] ?: listOf()
-                        audioNormalizer.process(inputFile, audioIndex, subs, outputFile)
+                        audioNormalizer.process(inputFile, fixVideoTimestamps, audioIndex, subs, outputFile)
                     } finally {
                         limiter.release()
                     }

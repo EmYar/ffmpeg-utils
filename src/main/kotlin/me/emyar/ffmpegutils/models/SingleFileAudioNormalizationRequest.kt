@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SingleFileAudioNormalizationRequest(
     val inputFilePath: String,
+    val fixVideoTimestamps: Boolean = false,
     val audioTrackGlobalIndex: String,
     val additionalSubs: List<SubsInfo> = emptyList(),
     val outputFilePath: String,

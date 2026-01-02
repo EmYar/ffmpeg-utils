@@ -9,11 +9,8 @@ private val log = KotlinLogging.logger {}
 
 class KillerService {
     init {
-        Runtime.getRuntime().addShutdownHook(
-            Thread({
-                cleanUp()
-            }, "killer-service-shutdown-hook")
-        )
+        Runtime.getRuntime()
+            .addShutdownHook(Thread({ cleanUp() }, "killer-service-shutdown-hook"))
     }
 
     private val processes: Queue<WeakReference<Process>> = ConcurrentLinkedQueue()

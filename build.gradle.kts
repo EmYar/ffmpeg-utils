@@ -26,7 +26,6 @@ kotlin.compilerOptions.jvmTarget = JVM_24
 
 dependencies {
     val ktorVersion = libs.versions.ktor.get()
-
     implementation("io.ktor:ktor-server-cio:$ktorVersion")
     implementation("io.ktor:ktor-server-di:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")

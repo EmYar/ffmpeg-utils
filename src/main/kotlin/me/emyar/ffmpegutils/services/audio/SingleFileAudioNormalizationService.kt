@@ -22,6 +22,7 @@ class SingleFileAudioNormalizationService(
 ) {
     suspend fun process(request: SingleFileAudioNormalizationRequest): String {
         val inputFile = request.inputFilePath.parseValidateConvertInput()
+        val fixVideoTimestamps = request.fixVideoTimestamps
         val audioIndex = request.audioTrackGlobalIndex.parseValidateConvertAudioIndex()
         val additionalSubs = request.additionalSubs.parseValidateConvertSubs()
         val outputFile = request.outputFilePath.parseValidateConvertOutput()
@@ -31,7 +32,15 @@ class SingleFileAudioNormalizationService(
             }
         }
 
-        return limiter.withPermit { audioNormalizer.process(inputFile, audioIndex, additionalSubs, outputFile) }
+        return limiter.withPermit {
+            audioNormalizer.process(
+                inputFile,
+                fixVideoTimestamps,
+                audioIndex,
+                additionalSubs,
+                outputFile,
+            )
+        }
     }
 
     private fun String.parseValidateConvertInput(): File =

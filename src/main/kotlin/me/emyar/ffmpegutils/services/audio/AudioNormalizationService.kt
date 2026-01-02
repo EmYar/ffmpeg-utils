@@ -21,27 +21,30 @@ class AudioNormalizationService(
 
     suspend fun process(
         inputFile: File,
+        fixVideoTimestamps: Boolean,
         audioIndex: AudioTrackGlobalIndex,
         subtitles: Collection<SubtitlesDto>,
         outputFile: File,
     ): String {
         log.debug { "Measuring audio in '$inputFile'" }
         val loudNormData = getLoudNormData(inputFile, audioIndex)
+        log.debug { "LoudNormData for $inputFile: '$loudNormData'" }
         log.debug { "Counting subtitles in '$inputFile'" }
         val existingSubsCount = countExistingSubsStreams(inputFile)
         val args = generateLoudNormApplyArgs(
             inputFile,
+            fixVideoTimestamps,
             audioIndex,
             loudNormData,
             existingSubsCount,
             subtitles,
             outputFile,
         )
-        log.debug { "Normalizing audio from '$inputFile' to '$outputFile'" }
+        log.debug { "Normalizing audio from '$inputFile' to '$outputFile'. Command: '${args.joinToString(" ")}'" }
         val (stdOut, exitCode) = coroutineProcessService.runProcess(*args)
         if (exitCode != 0) {
             throw IllegalStateException(
-                "Error running audio normalization process. FFmpeg exited with code: $exitCode. Output: $stdOut"
+                "Error running audio normalization process. FFmpeg exited with code: $exitCode. Output: $stdOut."
             )
         }
         return stdOut
@@ -68,6 +71,7 @@ class AudioNormalizationService(
 
     private fun generateLoudNormApplyArgs(
         inputFile: File,
+        fixVideoTimestamps: Boolean,
         audioIndex: AudioTrackGlobalIndex,
         loudNormData: LoudNormData,
         existingSubsCount: Int,
@@ -88,18 +92,25 @@ class AudioNormalizationService(
         ).joinToString(prefix = "loudnorm=", separator = ":")
 
         // ----------------- формируем аргументы -----------------
-        val args = mutableListOf(
-            "ffmpeg",
-            "-hide_banner", "-v", "warning", "-stats",
-            "-probesize", "10M",
-            "-y",
-            "-i", inputFile.absolutePath, // вход №0 — исходное видео
-        )
-
-        if (additionalSubtitles.isNotEmpty()) {
-            args += "-fix_sub_duration"
+        val args = mutableListOf<String>().also {
+            it.addAll(
+                arrayOf(
+                    "ffmpeg",
+                    "-hide_banner", "-v", "warning", "-stats",
+                    "-probesize", "10M",
+                    "-y",
+                )
+            )
+            if (fixVideoTimestamps) {
+                it.add("-fflags"); it.add("+genpts")
+            }
+            it.add("-i"); it.add(inputFile.absolutePath)
         }
-        // Добавляем каждый .srt как отдельный вход (№1, №2, ...)
+
+//        if (additionalSubtitles.isNotEmpty()) {
+//            args += "-fix_sub_duration"
+//        }
+        // Добавляем каждый файл как отдельный вход (№1, №2, ...)
         additionalSubtitles.forEach { (file, _, _, charset) ->
             if (charset != null) {
                 args += arrayOf("-sub_charenc", charset)
@@ -108,10 +119,10 @@ class AudioNormalizationService(
         }
 
         // копируем видео и существующие сабы
-        args += arrayOf(
-            "-map", "0:v?", "-c:v", "copy",
-            "-map", "0:s?", "-c:s", "copy",
-        )
+        args += arrayOf("-map", "0:v?", "-c:v", "copy")
+        if (existingSubsCount > 0) {
+            args += arrayOf("-map", "0:s?", "-c:s", "copy")
+        }
 
         // внешние сабы — добавляем после существующих
         for (index in 1..additionalSubtitles.size) {
