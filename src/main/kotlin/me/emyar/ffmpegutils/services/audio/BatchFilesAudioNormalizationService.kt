@@ -7,6 +7,7 @@ import kotlinx.coroutines.sync.Semaphore
 import me.emyar.ffmpegutils.models.AudioTrackGlobalIndex
 import me.emyar.ffmpegutils.models.BatchFilesAudioNormalizationRequest
 import me.emyar.ffmpegutils.models.BatchFilesAudioNormalizationRequest.SubtitlesDirInfo
+import me.emyar.ffmpegutils.models.InputVideo
 import me.emyar.ffmpegutils.models.SubtitlesDto
 import me.emyar.ffmpegutils.services.FileCharsetDetectorService
 import me.emyar.ffmpegutils.services.PathsAbsoluterService
@@ -24,8 +25,6 @@ class BatchFilesAudioNormalizationService(
     companion object {
         private const val INVALID_AUDIO_TRACK_GLOBAL_INDEX_MSG =
             "audioTrackGlobalIndex must be 'inputIndex:streamIndex', e.g. '0:2'"
-
-        private val SUPPORTED_EXTENSIONS_UPPER = setOf("MKV", "AVI")
     }
 
     suspend fun process(request: BatchFilesAudioNormalizationRequest) {
@@ -40,21 +39,23 @@ class BatchFilesAudioNormalizationService(
             throw IllegalStateException("Failed to create directory $outputDir")
         }
 
-        val files = inputDir.listFiles { it.extension.uppercase() in SUPPORTED_EXTENSIONS_UPPER }
+        val inputVideoFiles =
+            inputDir.listFiles { InputVideo.File.KnownExtensions.valuesMap.containsKey(it.extension.uppercase()) }
             ?.sortedBy { it.nameWithoutExtension }
+                ?.map { InputVideo.File(it) }
             ?: throw IllegalStateException("Failed to get files in '$inputDir' directory")
-        if (files.isEmpty()) {
-            throw IllegalArgumentException("No mkv files in '$inputDir' directory")
+        if (inputVideoFiles.isEmpty()) {
+            throw IllegalArgumentException("There are no supported video files in the directory '$inputDir'")
         }
 
         coroutineScope {
-            for (inputFile in files) {
+            for (input in inputVideoFiles) {
                 limiter.acquire()
                 launch {
                     try {
-                        val outputFile = outputDir.resolve("${inputFile.nameWithoutExtension}.mkv")
-                        val subs = subsByNameWithoutExt[inputFile.nameWithoutExtension] ?: listOf()
-                        audioNormalizer.process(inputFile, fixVideoTimestamps, audioIndex, subs, outputFile)
+                        val outputFile = outputDir.resolve("${input.file.nameWithoutExtension}.mkv")
+                        val subs = subsByNameWithoutExt[input.file.nameWithoutExtension] ?: listOf()
+                        audioNormalizer.process(input, fixVideoTimestamps, audioIndex, subs, outputFile)
                     } finally {
                         limiter.release()
                     }

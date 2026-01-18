@@ -1,8 +1,10 @@
 package me.emyar.ffmpegutils.services.audio
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import me.emyar.ffmpegutils.models.AudioTrackGlobalIndex
+import me.emyar.ffmpegutils.models.InputVideo
 import me.emyar.ffmpegutils.models.SingleFileAudioNormalizationRequest
 import me.emyar.ffmpegutils.models.SingleFileAudioNormalizationRequest.SubsInfo
 import me.emyar.ffmpegutils.models.SubtitlesDto
@@ -14,6 +16,8 @@ import java.nio.file.Paths
 private const val INVALID_AUDIO_TRACK_GLOBAL_INDEX_MSG =
     "audioTrackGlobalIndex must be 'inputIndex:streamIndex', e.g. '0:2'"
 
+private val log = KotlinLogging.logger {}
+
 class SingleFileAudioNormalizationService(
     private val limiter: Semaphore,
     private val pathsAbsoluter: PathsAbsoluterService,
@@ -21,7 +25,7 @@ class SingleFileAudioNormalizationService(
     private val audioNormalizer: AudioNormalizationService,
 ) {
     suspend fun process(request: SingleFileAudioNormalizationRequest): String {
-        val inputFile = request.inputFilePath.parseValidateConvertInput()
+        val input = request.inputFilePath.parseValidateConvertInput()
         val fixVideoTimestamps = request.fixVideoTimestamps
         val audioIndex = request.audioTrackGlobalIndex.parseValidateConvertAudioIndex()
         val additionalSubs = request.additionalSubs.parseValidateConvertSubs()
@@ -34,7 +38,7 @@ class SingleFileAudioNormalizationService(
 
         return limiter.withPermit {
             audioNormalizer.process(
-                inputFile,
+                input,
                 fixVideoTimestamps,
                 audioIndex,
                 additionalSubs,
@@ -43,14 +47,15 @@ class SingleFileAudioNormalizationService(
         }
     }
 
-    private fun String.parseValidateConvertInput(): File =
+    private fun String.parseValidateConvertInput(): InputVideo =
         pathsAbsoluter.absoluteIn(Paths.get(trim())).toFile()
             .also {
-                when {
-                    !it.exists() -> throw IllegalArgumentException("File '$it' does not exist")
-                    it.isDirectory -> throw IllegalArgumentException("File '$it' is a directory")
+                if (!it.exists()) {
+                    throw IllegalArgumentException("File '$it' does not exist")
                 }
             }
+            .let { InputVideo.fromFile(it) }
+            ?: throw IllegalArgumentException("Unsupported inputFile: '$this'")
 
     private fun String.parseValidateConvertAudioIndex(): AudioTrackGlobalIndex =
         split(':').let {
@@ -66,8 +71,10 @@ class SingleFileAudioNormalizationService(
         mapNotNull { (pathStr, desiredName, language, charset) ->
             val file = pathsAbsoluter.absoluteIn(Paths.get(pathStr))
                 .toFile()
-                .takeIf(File::exists)
-                ?: return@mapNotNull null
+            if (!file.exists() || !file.isFile) {
+                log.warn { "The file '$file' does not exist or is a directory" }
+                return@mapNotNull null
+            }
             val name = desiredName ?: file.nameWithoutExtension
             SubtitlesDto(file, name, language, charset ?: charsetDetector.detectCharset(file))
         }

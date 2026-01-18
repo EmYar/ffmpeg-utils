@@ -3,16 +3,16 @@ package me.emyar.ffmpegutils.services.audio
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.server.plugins.di.annotations.*
 import kotlinx.serialization.json.Json
-import me.emyar.ffmpegutils.models.AudioTrackGlobalIndex
-import me.emyar.ffmpegutils.models.LoudNormData
-import me.emyar.ffmpegutils.models.SubtitlesDto
+import me.emyar.ffmpegutils.models.*
 import me.emyar.ffmpegutils.services.CoroutineProcessService
 import me.emyar.ffmpegutils.utils.guessSubsCodecByFileExtension
+import me.emyar.ffmpegutils.utils.toInputArgs
 import java.io.File
 
 private val log = KotlinLogging.logger {}
 
 private val loudNormJsonRegex = """(?s)\{.*?"input_i".*?}""".toRegex()
+private val jsonRegex = """\{[\s\S]*}""".toRegex()
 
 class AudioNormalizationService(
     @Property("ktor.application.config.ebuR128Config") private val ebuR128Config: String,
@@ -20,19 +20,20 @@ class AudioNormalizationService(
 ) {
 
     suspend fun process(
-        inputFile: File,
+        input: InputVideo,
         fixVideoTimestamps: Boolean,
         audioIndex: AudioTrackGlobalIndex,
         subtitles: Collection<SubtitlesDto>,
         outputFile: File,
     ): String {
-        log.debug { "Measuring audio in '$inputFile'" }
-        val loudNormData = getLoudNormData(inputFile, audioIndex)
-        log.debug { "LoudNormData for $inputFile: '$loudNormData'" }
-        log.debug { "Counting subtitles in '$inputFile'" }
-        val existingSubsCount = countExistingSubsStreams(inputFile)
+        log.debug { "Measuring audio in '$input'" }
+        val loudNormData = getLoudNormData(input, audioIndex)
+        log.debug { "LoudNormData for $input: '$loudNormData'" }
+        log.debug { "Counting subtitles in '$input'" }
+        val existingSubsCount = countExistingSubsStreams(input)
+        log.debug { "Subtitles count: $existingSubsCount" }
         val args = generateLoudNormApplyArgs(
-            inputFile,
+            input,
             fixVideoTimestamps,
             audioIndex,
             loudNormData,
@@ -40,7 +41,7 @@ class AudioNormalizationService(
             subtitles,
             outputFile,
         )
-        log.debug { "Normalizing audio from '$inputFile' to '$outputFile'. Command: '${args.joinToString(" ")}'" }
+        log.debug { "Normalizing audio from '$input' to '$outputFile'. Command: '${args.joinToString(" ")}'" }
         val (stdOut, exitCode) = coroutineProcessService.runProcess(*args)
         if (exitCode != 0) {
             throw IllegalStateException(
@@ -51,13 +52,13 @@ class AudioNormalizationService(
     }
 
     private suspend fun getLoudNormData(
-        file: File,
+        input: InputVideo,
         audioIndex: AudioTrackGlobalIndex,
     ): LoudNormData {
         val (stdOut, exitCode) = coroutineProcessService.runProcess(
             "ffmpeg",
             "-hide_banner", "-nostats", "-v", "info",
-            "-i", file.absolutePath,
+            *input.toInputArgs(),
             "-map", audioIndex.toString(),
             "-filter:a", "aformat=channel_layouts=stereo,loudnorm=$ebuR128Config:print_format=json",
             "-f", "null", "-",
@@ -70,7 +71,7 @@ class AudioNormalizationService(
     }
 
     private fun generateLoudNormApplyArgs(
-        inputFile: File,
+        input: InputVideo,
         fixVideoTimestamps: Boolean,
         audioIndex: AudioTrackGlobalIndex,
         loudNormData: LoudNormData,
@@ -104,12 +105,9 @@ class AudioNormalizationService(
             if (fixVideoTimestamps) {
                 it.add("-fflags"); it.add("+genpts")
             }
-            it.add("-i"); it.add(inputFile.absolutePath)
+            it.addAll(input.toInputArgs())
         }
 
-//        if (additionalSubtitles.isNotEmpty()) {
-//            args += "-fix_sub_duration"
-//        }
         // Добавляем каждый файл как отдельный вход (№1, №2, ...)
         additionalSubtitles.forEach { (file, _, _, charset) ->
             if (charset != null) {
@@ -160,17 +158,22 @@ class AudioNormalizationService(
         return args.toTypedArray()
     }
 
-    private suspend fun countExistingSubsStreams(file: File): Int {
+    // TODO перенести в StreamsInfoService
+    private suspend fun countExistingSubsStreams(input: InputVideo): Int {
         val (stdOut, exitCode) = coroutineProcessService.runProcess(
             "ffprobe", "-v", "error",
+            *input.toInputArgs(),
             "-select_streams", "s",
             "-show_entries", "stream=index",
-            "-of", "csv=p=0",
-            file.absolutePath,
+            "-of", "json",
         )
         if (exitCode != 0) {
             throw IllegalStateException("ffprobe exited with code: $exitCode. Output:\n$stdOut")
         }
-        return stdOut.lineSequence().count(String::isNotBlank)
+        log.debug { stdOut }
+        val matchResult = jsonRegex.find(stdOut)
+            ?: throw IllegalStateException("Invalid subtitle stream count result: '$stdOut'")
+        return Json.decodeFromString<StreamsInfo>(matchResult.value)
+            .streams.size
     }
 }
