@@ -17,6 +17,7 @@ private val jsonRegex = """\{[\s\S]*}""".toRegex()
 class AudioNormalizationService(
     @Property("ktor.application.config.ebuR128Config") private val ebuR128Config: String,
     private val coroutineProcessService: CoroutineProcessService,
+    @Property("ktor.application.config.audioFormatOutConfig") private val audioOutConfig: String,
 ) {
 
     suspend fun process(
@@ -130,11 +131,8 @@ class AudioNormalizationService(
         // Аудио — только выбранный трек, с применением loudnorm и перекодированием в FLAC стерео
         args += arrayOf(
             "-map", audioIndex.toString(),
-            "-ac", "2",
-            "-ar", "48000",
-            "-sample_fmt", "s16",
+            *audioOutConfig.split(' ').toTypedArray(),
             "-af", loudnormFilter,
-            "-c:a", "flac",
         )
 
         args += arrayOf(

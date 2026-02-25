@@ -1,7 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.JavaVersion.VERSION_24
-import org.gradle.api.tasks.wrapper.Wrapper.DistributionType.BIN
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_24
+import org.gradle.api.JavaVersion.VERSION_25
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 
 plugins {
     kotlin("jvm") version libs.versions.kotlin
@@ -19,10 +18,16 @@ repositories {
 }
 
 java {
-    sourceCompatibility = VERSION_24
-    targetCompatibility = VERSION_24
+    sourceCompatibility = VERSION_25
+    targetCompatibility = VERSION_25
 }
-kotlin.compilerOptions.jvmTarget = JVM_24
+kotlin.compilerOptions.jvmTarget = JVM_25
+
+ktor {
+    openApi {
+        enabled = true
+    }
+}
 
 dependencies {
     val ktorVersion = libs.versions.ktor.get()
@@ -32,6 +37,7 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-server-request-validation:$ktorVersion")
+    implementation("io.ktor:ktor-server-routing-openapi:$ktorVersion")
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
 
     implementation("ch.qos.logback:logback-classic:${libs.versions.logback.get()}")
@@ -83,10 +89,6 @@ graalvmNative {
 }
 
 tasks {
-    processResources {
-        dependsOn("buildOpenApi")
-    }
-
     named<ShadowJar>("shadowJar") {
         archiveFileName.set("${project.name}-all.jar")
     }
@@ -157,8 +159,7 @@ tasks {
     }
 
     wrapper {
-        distributionType = BIN
-        gradleVersion = "9.3.0"
+        gradleVersion = "9.3.1"
     }
 }
 
