@@ -131,8 +131,8 @@ class AudioNormalizationService(
         // Аудио — только выбранный трек, с применением loudnorm и перекодированием в FLAC стерео
         args += arrayOf(
             "-map", audioIndex.toString(),
-            *audioOutConfig.split(' ').toTypedArray(),
-            "-af", loudnormFilter,
+            "-c:a", *audioOutConfig.split(' ').toTypedArray(),
+            "-filter:a", loudnormFilter,
         )
 
         args += arrayOf(
