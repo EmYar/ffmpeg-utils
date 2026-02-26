@@ -548,7 +548,8 @@
           "name": "<init>",
           "parameterTypes": [
             "java.lang.String",
-            "me.emyar.ffmpegutils.services.CoroutineProcessService"
+            "me.emyar.ffmpegutils.services.CoroutineProcessService",
+            "java.lang.String"
           ]
         }
       ]
