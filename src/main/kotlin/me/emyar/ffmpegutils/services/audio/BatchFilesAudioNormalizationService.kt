@@ -8,6 +8,7 @@ import me.emyar.ffmpegutils.models.AudioTrackGlobalIndex
 import me.emyar.ffmpegutils.models.BatchFilesAudioNormalizationRequest
 import me.emyar.ffmpegutils.models.BatchFilesAudioNormalizationRequest.SubtitlesDirInfo
 import me.emyar.ffmpegutils.models.InputVideo
+import me.emyar.ffmpegutils.models.InputVideo.File.KnownExtensions
 import me.emyar.ffmpegutils.models.SubtitlesDto
 import me.emyar.ffmpegutils.services.FileCharsetDetectorService
 import me.emyar.ffmpegutils.services.PathsAbsoluterService
@@ -39,10 +40,9 @@ class BatchFilesAudioNormalizationService(
             throw IllegalStateException("Failed to create directory $outputDir")
         }
 
-        val inputVideoFiles =
-            inputDir.listFiles { InputVideo.File.KnownExtensions.valuesMap.containsKey(it.extension.uppercase()) }
+        val inputVideoFiles = inputDir.listFiles { it.extension.uppercase() in KnownExtensions.valuesMap.keys }
             ?.sortedBy { it.nameWithoutExtension }
-                ?.map { InputVideo.File(it) }
+            ?.map { InputVideo.File(it) }
             ?: throw IllegalStateException("Failed to get files in '$inputDir' directory")
         if (inputVideoFiles.isEmpty()) {
             throw IllegalArgumentException("There are no supported video files in the directory '$inputDir'")
@@ -54,7 +54,11 @@ class BatchFilesAudioNormalizationService(
                 launch {
                     try {
                         val outputFile = outputDir.resolve("${input.file.nameWithoutExtension}.mkv")
-                        val subs = subsByNameWithoutExt[input.file.nameWithoutExtension] ?: listOf()
+                        val subs = subsByNameWithoutExt[input.file.nameWithoutExtension]
+                            ?: subsByNameWithoutExt.asSequence()
+                                .filter { (fileName, _) -> fileName.startsWith(input.file.nameWithoutExtension) }
+                                .flatMap { (_, subtitles) -> subtitles }
+                                .toList()
                         audioNormalizer.process(input, fixVideoTimestamps, audioIndex, subs, outputFile)
                     } finally {
                         limiter.release()
