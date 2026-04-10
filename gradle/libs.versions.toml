@@ -2,7 +2,7 @@
 kotlin = "2.3.20"
 ktor = "3.4.2"
 shadow = "9.2.2"
-graalvmBuildtoolsNative = "0.11.4"
+graalvmBuildtoolsNative = "1.0.0"
 logback = "1.5.32"
 kotlinLogging = "8.0.01"
 juniversalchardet = "1.0.3"
