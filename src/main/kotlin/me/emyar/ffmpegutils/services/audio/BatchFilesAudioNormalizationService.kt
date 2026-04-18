@@ -41,8 +41,11 @@ class BatchFilesAudioNormalizationService(
         }
 
         val inputVideoFiles = inputDir.listFiles { it.extension.uppercase() in KnownExtensions.valuesMap.keys }
+            ?.asSequence()
             ?.sortedBy { it.nameWithoutExtension }
+            ?.dropWhile { request.skipUntil != null && it.name != request.skipUntil }
             ?.map { InputVideo.File(it) }
+            ?.toList()
             ?: throw IllegalStateException("Failed to get files in '$inputDir' directory")
         if (inputVideoFiles.isEmpty()) {
             throw IllegalArgumentException("There are no supported video files in the directory '$inputDir'")

@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class BatchFilesAudioNormalizationRequest(
     val inputDir: String,
     val fixVideoTimestamps: Boolean = false,
+    val skipUntil: String? = null,
     val audioTrackGlobalIndex: String,
     val additionalSubsDirs: List<SubtitlesDirInfo> = emptyList(),
     val outputDir: String,
