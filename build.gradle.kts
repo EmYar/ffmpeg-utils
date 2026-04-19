@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.gradle.api.JavaVersion.VERSION_25
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 
 plugins {
@@ -18,8 +17,9 @@ repositories {
 }
 
 java {
-    sourceCompatibility = VERSION_25
-    targetCompatibility = VERSION_25
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    }
 }
 kotlin.compilerOptions.jvmTarget = JVM_25
 
@@ -61,6 +61,11 @@ application {
 graalvmNative {
     binaries {
         named("main") {
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(25))
+                vendor.set(JvmVendorSpec.GRAAL_VM)
+            })
+
             val initializeAtBuildTime = arrayOf(
                 "kotlin",
                 "kotlinx",
@@ -94,67 +99,6 @@ tasks {
         archiveFileName.set("${project.name}-all.jar")
     }
 
-    val dockerRegistryProp = "dockerRegistry"
-    val platformTagProp = "platformTag"
-    val registryProvider = providers.gradleProperty(dockerRegistryProp)
-    val platformTagProvider = providers.gradleProperty(platformTagProp)
-
-    val appVersion = project.version.toString()
-
-    val versionTagProvider = providers.provider {
-        val platformTag = platformTagProvider.orNull
-            ?: error("Please provide platform tag via -P$platformTagProp=rock4Bplus")
-        val registry = registryProvider.orNull
-        project.resolveDockerImageTag(registry, platformTag)
-    }
-
-    val latestTagProvider = providers.provider {
-        val registry = registryProvider.orNull
-            ?: error("Please provide docker registry via -P$dockerRegistryProp=host:port")
-        val platformTag = platformTagProvider.get()
-        "$registry/${project.name}:latest-$platformTag"
-    }
-
-    val buildNativeDockerImage = register<Exec>("buildNativeDockerImage") {
-        val platformTag = platformTagProvider.get()
-        val versionTag = versionTagProvider.get()
-
-        println("Building Docker image: $versionTag")
-        println("APP_VERSION = $appVersion")
-        println("PLATFORM_TAG = $platformTag")
-
-        commandLine(
-            "docker", "build",
-            "--build-arg", "APP_VERSION=$appVersion",
-            "--build-arg", "PLATFORM_TAG=$platformTag",
-            "-t", versionTag,
-            ".",
-        )
-    }
-
-    register<Exec>("pushNativeDockerImage") {
-        dependsOn(buildNativeDockerImage)
-
-        val versionTag = versionTagProvider.get()
-        val latestTag = latestTagProvider.get()
-
-        println("Tagging Docker image:")
-        println("  from: $versionTag")
-        println("    to: $latestTag")
-        println("Pushing Docker images:")
-        println("  $versionTag")
-        println("  $latestTag")
-
-        val script = """
-            set -e
-            docker tag "$versionTag" "$latestTag"
-            docker push "$versionTag"
-            docker push "$latestTag"
-        """.trimIndent()
-
-        commandLine("sh", "-c", script)
-    }
-
     test {
         useJUnitPlatform()
     }
@@ -162,16 +106,4 @@ tasks {
     wrapper {
         gradleVersion = "9.4.1"
     }
-}
-
-fun Project.resolveDockerImageTag(registry: String?, platformTag: String): String {
-    val appVersion = version.toString()
-
-    val imageName = if (registry.isNullOrBlank()) {
-        name
-    } else {
-        "$registry/$name"
-    }
-
-    return "$imageName:$appVersion-$platformTag"
 }
