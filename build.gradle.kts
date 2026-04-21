@@ -61,10 +61,12 @@ application {
 graalvmNative {
     binaries {
         named("main") {
-            javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(25))
-                vendor.set(JvmVendorSpec.GRAAL_VM)
-            })
+            javaLauncher.set(
+                javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(25))
+                    vendor.set(JvmVendorSpec.GRAAL_VM)
+                }
+            )
 
             val initializeAtBuildTime = arrayOf(
                 "kotlin",
