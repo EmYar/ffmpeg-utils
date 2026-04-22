@@ -1,8 +1,8 @@
 [versions]
-kotlin = "2.2.21"
-ktor = "3.3.2"
+kotlin = "2.3.20"
+ktor = "3.4.2"
 shadow = "9.2.2"
-graalvmBuildtoolsNative = "0.11.3"
-logback = "1.5.21"
-kotlinLogging = "7.0.13"
+graalvmBuildtoolsNative = "1.0.0"
+logback = "1.5.32"
+kotlinLogging = "8.0.01"
 juniversalchardet = "1.0.3"

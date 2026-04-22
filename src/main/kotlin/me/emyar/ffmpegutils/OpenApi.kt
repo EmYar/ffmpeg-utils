@@ -6,6 +6,6 @@ import io.ktor.server.routing.*
 
 fun Application.configureOpenApi() {
     routing {
-        swaggerUI(path = "/swagger", swaggerFile = "openapi/generated.json")
+        swaggerUI(path = "/swagger")
     }
 }
