@@ -34,7 +34,7 @@ class TmpStorageService(
                 }
                 TmpStorageState(
                     path = it.path,
-                    limitBytes = it.sizeLimitMb.toLong() * 1024 * 1024,
+                    limitBytes = it.sizeLimitBytes,
                 )
             }
             ?: emptyList()

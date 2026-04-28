@@ -22,7 +22,7 @@ private val TEST_DIR_NAME = TmpStorageServiceTest::class.simpleName
 class TmpStorageServiceTest {
 
     private val testDir = Paths.get(System.getProperty("java.io.tmpdir"), TEST_DIR_NAME)
-    private val config = TmpStorageConfig(path = testDir, sizeLimitMb = 1)
+    private val config = TmpStorageConfig(path = testDir, sizeLimitBytes = 1024 * 1024)
         .let { Json.encodeToString(listOf(it)) }
 
     private lateinit var service: TmpStorageService

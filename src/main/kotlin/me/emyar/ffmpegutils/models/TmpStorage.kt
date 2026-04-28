@@ -8,7 +8,7 @@ import java.nio.file.Path
 data class TmpStorageConfig(
     @Serializable(with = PathSerializer::class)
     val path: Path,
-    val sizeLimitMb: Int,
+    val sizeLimitBytes: Long,
 )
 
 data class TmpStorageState(
