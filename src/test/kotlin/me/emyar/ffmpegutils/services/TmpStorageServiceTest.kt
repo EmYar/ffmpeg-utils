@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalUuidApi::class)
+@file:OptIn(ExperimentalUuidApi::class, ExperimentalPathApi::class)
 
 package me.emyar.ffmpegutils.services
 
@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.deleteRecursively
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -34,23 +36,23 @@ class TmpStorageServiceTest {
 
     @AfterEach
     fun tearDown() {
-        Files.delete(testDir)
+        testDir.deleteRecursively()
     }
 
     @Test
     fun getPath(): Unit = runBlocking {
-        val fileToStore = File(Uuid.generateV4().toString())
+        val fileToStore = testDir.resolve(Uuid.generateV4().toString()).toFile()
+            .also {
+                it.createNewFile()
+                it.writeText("${TmpStorageServiceTest::class.simpleName}#getPath")
+            }
 
         val tmpPath = service.getPath(fileToStore)
             .shouldNotBeNull()
 
-        tmpPath.toFile().writeText("${TmpStorageServiceTest::class.simpleName}#getPath")
+        Files.copy(fileToStore.toPath(), tmpPath)
 
         service.getStateDump().first().usedBytes shouldBe Files.size(tmpPath)
-//
-//        service.removeFile(tmpPath)
-//
-//        service.getStateDump().first().usedBytes shouldBe 0
     }
 
     @Test

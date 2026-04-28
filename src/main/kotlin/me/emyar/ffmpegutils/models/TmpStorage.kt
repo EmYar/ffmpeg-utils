@@ -1,10 +1,12 @@
 package me.emyar.ffmpegutils.models
 
 import kotlinx.serialization.Serializable
+import me.emyar.ffmpegutils.models.serialization.PathSerializer
 import java.nio.file.Path
 
 @Serializable
 data class TmpStorageConfig(
+    @Serializable(with = PathSerializer::class)
     val path: Path,
     val sizeLimitMb: Int,
 )
