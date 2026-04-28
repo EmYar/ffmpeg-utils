@@ -10,7 +10,6 @@ import me.emyar.ffmpegutils.models.TmpStorageConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.io.path.ExperimentalPathApi
@@ -40,7 +39,7 @@ class TmpStorageServiceTest {
     }
 
     @Test
-    fun getPath(): Unit = runBlocking {
+    fun getPathAndRemoveFile(): Unit = runBlocking {
         val fileToStore = testDir.resolve(Uuid.generateV4().toString()).toFile()
             .also {
                 it.createNewFile()
@@ -53,11 +52,9 @@ class TmpStorageServiceTest {
         Files.copy(fileToStore.toPath(), tmpPath)
 
         service.getStateDump().first().usedBytes shouldBe Files.size(tmpPath)
+
+        service.removeFile(tmpPath)
+
+        service.getStateDump().first().usedBytes shouldBe 0
     }
-
-    @Test
-    fun removeFile() {
-
-    }
-
 }
