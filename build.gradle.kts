@@ -47,6 +47,7 @@ dependencies {
     implementation("com.googlecode.juniversalchardet:juniversalchardet:${libs.versions.juniversalchardet.get()}")
 
     testImplementation(kotlin("test"))
+    testImplementation("io.kotest:kotest-assertions-core:${libs.versions.kotest.get()}")
 }
 
 application {

@@ -6,3 +6,6 @@ graalvmBuildtoolsNative = "1.0.0"
 logback = "1.5.32"
 kotlinLogging = "8.0.01"
 juniversalchardet = "1.0.3"
+
+# tests
+kotest = "6.1.11"

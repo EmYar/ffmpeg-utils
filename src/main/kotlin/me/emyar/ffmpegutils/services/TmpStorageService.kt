@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalUuidApi::class)
+
 package me.emyar.ffmpegutils.services
 
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -8,7 +10,9 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import me.emyar.ffmpegutils.models.TmpStorageConfig
+import me.emyar.ffmpegutils.models.TmpStorageDump
 import me.emyar.ffmpegutils.models.TmpStorageState
+import me.emyar.ffmpegutils.models.toDump
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -18,7 +22,6 @@ import kotlin.uuid.Uuid
 
 private val log = KotlinLogging.logger { }
 
-@OptIn(ExperimentalUuidApi::class)
 class TmpStorageService(
     @Property("ktor.application.config.tmpStoragesJson") config: String?,
 ) {
@@ -98,4 +101,9 @@ class TmpStorageService(
             storage.usedBytes -= fileSize
         }
     }
+
+    suspend fun getStateDump(): List<TmpStorageDump> =
+        mutex.withLock {
+            storages.map { it.toDump() }
+        }
 }

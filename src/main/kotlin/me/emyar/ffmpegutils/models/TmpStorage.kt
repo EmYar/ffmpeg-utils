@@ -14,3 +14,15 @@ data class TmpStorageState(
     val limitBytes: Long,
     var usedBytes: Long = 0,
 )
+
+data class TmpStorageDump(
+    val path: Path,
+    val limitBytes: Long,
+    val usedBytes: Long = 0,
+)
+
+fun TmpStorageState.toDump() = TmpStorageDump(
+    path = path,
+    limitBytes = limitBytes,
+    usedBytes = usedBytes,
+)
