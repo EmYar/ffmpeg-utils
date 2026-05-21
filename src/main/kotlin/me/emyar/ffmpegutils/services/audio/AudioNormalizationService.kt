@@ -168,7 +168,6 @@ class AudioNormalizationService(
         if (exitCode != 0) {
             throw IllegalStateException("ffprobe exited with code: $exitCode. Output:\n$stdOut")
         }
-        log.debug { stdOut }
         val matchResult = jsonRegex.find(stdOut)
             ?: throw IllegalStateException("Invalid subtitle stream count result: '$stdOut'")
         return Json.decodeFromString<StreamsInfo>(matchResult.value)

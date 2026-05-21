@@ -71,7 +71,7 @@ class TmpStorageService(
 
     suspend fun removeFile(filePath: Path) {
         if (storages.isEmpty()) {
-            throw IllegalStateException("Attempt to remove file from tmp storage without storages")
+            throw IllegalStateException("Attempt to remove file from tmp storage without configured storages")
         }
 
         mutex.withLock {

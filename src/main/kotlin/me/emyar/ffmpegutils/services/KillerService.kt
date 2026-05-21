@@ -16,7 +16,7 @@ class KillerService {
     private val processes: Queue<WeakReference<Process>> = ConcurrentLinkedQueue()
 
     fun registerProcess(process: Process) {
-        processes.add(WeakReference(process))
+        processes += WeakReference(process)
     }
 
     fun cleanUp() {
