@@ -128,7 +128,7 @@ class AudioNormalizationService(
             args += arrayOf("-map", "$index:s?")
         }
 
-        // Аудио — только выбранный трек, с применением loudnorm и перекодированием в FLAC стерео
+        // Аудио — только выбранный трек, с применением loudnorm и перекодированием в соответствии с конфигурацией
         args += arrayOf(
             "-map", audioIndex.toString(),
             "-c:a", *audioOutConfig.split(' ').toTypedArray(),

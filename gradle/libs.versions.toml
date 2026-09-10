@@ -1,11 +1,11 @@
 [versions]
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 ktor = "3.5.2"
-shadow = "9.4.1"
-graalvmBuildtoolsNative = "1.1.0"
-logback = "1.5.32"
-kotlinLogging = "8.0.03"
+shadow = "9.6.1"
+graalvmBuildtoolsNative = "1.1.12"
+logback = "1.6.3"
+kotlinLogging = "8.0.4"
 juniversalchardet = "1.0.3"
 
 # tests
-kotest = "6.1.11"
+kotest = "6.2.4"
