@@ -104,7 +104,25 @@ tasks {
     }
 
     test {
-        useJUnitPlatform()
+        useJUnitPlatform {
+            excludeTags("native")
+        }
+    }
+
+    register<Test>("nativeSmokeTest") {
+        description = "Runs slow end-to-end smoke tests against the compiled native image."
+        group = "verification"
+        dependsOn("nativeCompile")
+        testClassesDirs = sourceSets.test.get().output.classesDirs
+        classpath = sourceSets.test.get().runtimeClasspath
+        useJUnitPlatform {
+            includeTags("native")
+        }
+        systemProperty(
+            "nativeExecutablePath",
+            layout.buildDirectory.file("native/nativeCompile/${project.name}").get().asFile.absolutePath,
+        )
+        outputs.upToDateWhen { false }
     }
 
     wrapper {

@@ -542,6 +542,17 @@
       ]
     },
     {
+      "type": "me.emyar.ffmpegutils.services.TmpStorageService",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
       "type": "me.emyar.ffmpegutils.services.audio.AudioNormalizationService",
       "methods": [
         {
