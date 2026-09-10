@@ -30,6 +30,8 @@ ktor {
 }
 
 dependencies {
+    implementation(enforcedPlatform("org.jetbrains.kotlin:kotlin-bom:${libs.versions.kotlin.get()}"))
+
     val ktorVersion = libs.versions.ktor.get()
     implementation("io.ktor:ktor-server-cio:$ktorVersion")
     implementation("io.ktor:ktor-server-di:$ktorVersion")
